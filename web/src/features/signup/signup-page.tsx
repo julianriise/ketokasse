@@ -182,7 +182,7 @@ function FoodBoxImage(): JSX.Element {
 	return (
 		<figure className="kk-photo">
 			<Image
-				src="/ketokasse-hero.png"
+				src="/ketokasse-hero.jpg"
 				alt={copyNo.photo.alt}
 				width={1280}
 				height={720}
