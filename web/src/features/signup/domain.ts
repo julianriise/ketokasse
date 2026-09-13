@@ -1,47 +1,3 @@
-export type Weekday =
-	| 'mon'
-	| 'tue'
-	| 'wed'
-	| 'thu'
-	| 'fri'
-	| 'sat'
-	| 'sun'
-
-export type AvailableDaySlot<D extends Weekday = Weekday> = Readonly<{
-	day: D
-	taken: false
-}>
-
-export type TakenDaySlot<D extends Weekday = Weekday> = Readonly<{
-	day: D
-	taken: true
-}>
-
-export type DaySlot<D extends Weekday = Weekday> =
-	| AvailableDaySlot<D>
-	| TakenDaySlot<D>
-
-/** One row per weekday, in display order. */
-export type DaySlotTable = readonly [
-	DaySlot<'mon'>,
-	DaySlot<'tue'>,
-	DaySlot<'wed'>,
-	DaySlot<'thu'>,
-	DaySlot<'fri'>,
-	DaySlot<'sat'>,
-	DaySlot<'sun'>,
-]
-
-export const DAY_SLOTS: DaySlotTable = [
-	{ day: 'mon', taken: false },
-	{ day: 'tue', taken: false },
-	{ day: 'wed', taken: true },
-	{ day: 'thu', taken: false },
-	{ day: 'fri', taken: false },
-	{ day: 'sat', taken: true },
-	{ day: 'sun', taken: false },
-]
-
 export type DraftAddress = Readonly<{
 	line1: string
 	postalCode: string
@@ -51,18 +7,15 @@ export type DraftAddress = Readonly<{
 
 export type AddressField = keyof DraftAddress
 
-const signupDraftBrand: unique symbol = Symbol('SignupDraft')
+const interestDraftBrand: unique symbol = Symbol('InterestDraft')
 
-/** An immutable value that may be incomplete while the customer types. */
-export type SignupDraft = Readonly<{
-	day: Weekday | null
+export type InterestDraft = Readonly<{
 	address: DraftAddress
-	[signupDraftBrand]: true
+	allergenAck: boolean
+	[interestDraftBrand]: true
 }>
 
-export type SignupIssue =
-	| Readonly<{ field: 'day'; code: 'day-required' }>
-	| Readonly<{ field: 'day'; code: 'day-taken' }>
+export type InterestIssue =
 	| Readonly<{
 			field: 'line1'
 			code: 'line1-required' | 'line1-too-long'
@@ -76,6 +29,7 @@ export type SignupIssue =
 			field: 'instructions'
 			code: 'instructions-too-long'
 	  }>
+	| Readonly<{ field: 'allergenAck'; code: 'allergen-required' }>
 
 export type DeliveryAddress = Readonly<{
 	line1: string
@@ -84,61 +38,57 @@ export type DeliveryAddress = Readonly<{
 	instructions: string | null
 }>
 
-const readySignupBrand: unique symbol = Symbol('ReadySignup')
+const readyInterestBrand: unique symbol = Symbol('ReadyInterest')
 
-/** A normalized signup that has passed all current slot and address rules. */
-export type ReadySignup = Readonly<{
-	day: Weekday
+export type ReadyInterest = Readonly<{
 	address: DeliveryAddress
-	[readySignupBrand]: true
+	allergenAck: true
+	[readyInterestBrand]: true
 }>
 
-export type SignupValidation =
-	| Readonly<{ ok: true; signup: ReadySignup }>
+export type InterestValidation =
+	| Readonly<{ ok: true; interest: ReadyInterest }>
 	| Readonly<{
 			ok: false
-			issues: readonly [SignupIssue, ...SignupIssue[]]
+			issues: readonly [InterestIssue, ...InterestIssue[]]
 	  }>
 
 const osloCalendarDateBrand: unique symbol = Symbol('OsloCalendarDate')
 
-/** An ISO calendar date interpreted only in Europe/Oslo. */
 export type OsloCalendarDate = string & {
 	readonly [osloCalendarDateBrand]: true
 }
 
 export type NextDelivery = Readonly<{
-	day: Weekday
 	date: OsloCalendarDate
 }>
+
+export const WEEKLY_BOX_ALLERGENS: readonly string[] = []
+
+export const EU_ALLERGEN_REFERENCE = [
+	'Glutenholdig korn',
+	'Krepsdyr',
+	'Egg',
+	'Fisk',
+	'Peanøtter',
+	'Soya',
+	'Melk',
+	'Nøtter',
+	'Selleri',
+	'Sennep',
+	'Sesamfrø',
+	'Svoveldioksid og sulfitter',
+	'Lupin',
+	'Bløtdyr',
+] as const
 
 const LINE1_MAX = 120
 const CITY_MAX = 80
 const INSTRUCTIONS_MAX = 300
 const POSTAL_CODE_PATTERN = /^\d{4}$/
 const OSLO_TIME_ZONE = 'Europe/Oslo'
-// Same-day delivery is allowed only before 12:00:00 Europe/Oslo.
 const SAME_DAY_CUTOFF_HOUR = 12
-
-const JS_DAY_TO_WEEKDAY = [
-	'sun',
-	'mon',
-	'tue',
-	'wed',
-	'thu',
-	'fri',
-	'sat',
-] as const satisfies readonly Weekday[]
-
-const WEEKDAY_TO_ISO: Readonly<Record<Weekday, number>> = {
-	mon: 1,
-	tue: 2,
-	wed: 3,
-	thu: 4,
-	fri: 5,
-	sat: 6,
-	sun: 7,
-}
+const MONDAY_ISO = 1
 
 const EMPTY_ADDRESS: DraftAddress = {
 	line1: '',
@@ -147,31 +97,19 @@ const EMPTY_ADDRESS: DraftAddress = {
 	instructions: '',
 }
 
-export function createSignupDraft(): SignupDraft {
+export function createInterestDraft(): InterestDraft {
 	return {
-		day: null,
 		address: EMPTY_ADDRESS,
-		[signupDraftBrand]: true,
+		allergenAck: false,
+		[interestDraftBrand]: true,
 	}
 }
 
-/** Returns a new draft. A taken slot cannot reach this signature. */
-export function selectDeliveryDay(
-	draft: SignupDraft,
-	slot: AvailableDaySlot,
-): SignupDraft {
-	return {
-		...draft,
-		day: slot.day,
-	}
-}
-
-/** Replaces one raw controlled-input value without mutating the draft. */
-export function editSignupAddress(
-	draft: SignupDraft,
+export function editInterestAddress(
+	draft: InterestDraft,
 	field: AddressField,
 	value: string,
-): SignupDraft {
+): InterestDraft {
 	return {
 		...draft,
 		address: {
@@ -181,21 +119,20 @@ export function editSignupAddress(
 	}
 }
 
-/**
- * Trims required fields, validates the four-digit postal code and field limits,
- * and rejects a missing or currently taken day.
- */
-export function validateSignupDraft(
-	draft: SignupDraft,
-	slots: DaySlotTable,
-): SignupValidation {
-	const issues: SignupIssue[] = []
-
-	if (draft.day === null) {
-		issues.push({ field: 'day', code: 'day-required' })
-	} else if (isTakenDay(slots, draft.day)) {
-		issues.push({ field: 'day', code: 'day-taken' })
+export function setAllergenAck(
+	draft: InterestDraft,
+	allergenAck: boolean,
+): InterestDraft {
+	return {
+		...draft,
+		allergenAck,
 	}
+}
+
+export function validateInterestDraft(
+	draft: InterestDraft,
+): InterestValidation {
+	const issues: InterestIssue[] = []
 
 	const line1 = draft.address.line1.trim()
 	if (line1.length === 0) {
@@ -221,61 +158,40 @@ export function validateSignupDraft(
 		issues.push({ field: 'instructions', code: 'instructions-too-long' })
 	}
 
+	if (!draft.allergenAck) {
+		issues.push({ field: 'allergenAck', code: 'allergen-required' })
+	}
+
 	const first = issues[0]
 	if (first !== undefined) {
 		return { ok: false, issues: [first, ...issues.slice(1)] }
 	}
 
-	if (draft.day === null) {
-		return {
-			ok: false,
-			issues: [{ field: 'day', code: 'day-required' }],
-		}
-	}
-
 	return {
 		ok: true,
-		signup: {
-			day: draft.day,
+		interest: {
 			address: {
 				line1,
 				postalCode,
 				city,
 				instructions: instructions.length === 0 ? null : instructions,
 			},
-			[readySignupBrand]: true,
+			allergenAck: true,
+			[readyInterestBrand]: true,
 		},
 	}
 }
 
-/**
- * Uses Europe/Oslo local calendar arithmetic. Today is eligible only when the
- * selected weekday is today and now is before the private same-day cutoff.
- */
-export function deriveNextDelivery(day: Weekday, now: Date): NextDelivery {
+export function deriveNextMonday(now: Date): NextDelivery {
 	const oslo = readOsloCivil(now)
-	const delta = daysUntilDelivery(day, oslo.weekday, oslo.hour)
+	const delta = daysUntilMonday(oslo.weekdayIso, oslo.hour)
 	return {
-		day,
 		date: addCivilDays(oslo.year, oslo.month, oslo.day, delta),
 	}
 }
 
-function isTakenDay(slots: DaySlotTable, day: Weekday): boolean {
-	for (const slot of slots) {
-		if (slot.day === day) {
-			return slot.taken
-		}
-	}
-	return false
-}
-
-function daysUntilDelivery(
-	target: Weekday,
-	current: Weekday,
-	hour: number,
-): number {
-	let delta = (WEEKDAY_TO_ISO[target] - WEEKDAY_TO_ISO[current] + 7) % 7
+function daysUntilMonday(currentIso: number, hour: number): number {
+	let delta = (MONDAY_ISO - currentIso + 7) % 7
 	if (delta === 0 && hour >= SAME_DAY_CUTOFF_HOUR) {
 		delta = 7
 	}
@@ -287,7 +203,7 @@ function readOsloCivil(now: Date): {
 	month: number
 	day: number
 	hour: number
-	weekday: Weekday
+	weekdayIso: number
 } {
 	const parts = new Intl.DateTimeFormat('en-US', {
 		timeZone: OSLO_TIME_ZONE,
@@ -303,12 +219,9 @@ function readOsloCivil(now: Date): {
 	const day = numberPart(parts, 'day')
 	const hour = numberPart(parts, 'hour')
 	const jsDay = new Date(Date.UTC(year, month - 1, day)).getUTCDay()
-	const weekday = JS_DAY_TO_WEEKDAY[jsDay]
-	if (weekday === undefined) {
-		throw new Error(`Unexpected JS weekday index: ${jsDay}`)
-	}
+	const weekdayIso = jsDay === 0 ? 7 : jsDay
 
-	return { year, month, day, hour, weekday }
+	return { year, month, day, hour, weekdayIso }
 }
 
 function numberPart(
@@ -328,7 +241,6 @@ function addCivilDays(
 	day: number,
 	delta: number,
 ): OsloCalendarDate {
-	// Civil Y-M-D addition is timezone-independent; UTC calendar math is safe.
 	const utc = new Date(Date.UTC(year, month - 1, day + delta))
 	const y = String(utc.getUTCFullYear()).padStart(4, '0')
 	const m = String(utc.getUTCMonth() + 1).padStart(2, '0')

@@ -1,28 +1,18 @@
-import type {
-	DaySlot,
-	NextDelivery,
-	OsloCalendarDate,
-	SignupIssue,
-	Weekday,
-} from './domain'
+import type { InterestIssue, NextDelivery, OsloCalendarDate } from './domain'
 
 export type CopyNo = Readonly<{
 	metadata: Readonly<{ title: string; description: string }>
 	a11y: Readonly<{ skipToSignup: string; required: string }>
 	hero: Readonly<{
-		eyebrow: string
 		title: string
 		lead: string
-		capacity: string
+		softLaunch: string
 	}>
 	photo: Readonly<{ alt: string }>
-	day: Readonly<{
+	offer: Readonly<{
 		heading: string
 		body: string
-		groupLabel: string
-		available: string
-		taken: string
-		selected: string
+		rows: readonly string[]
 	}>
 	address: Readonly<{
 		heading: string
@@ -37,10 +27,19 @@ export type CopyNo = Readonly<{
 		instructionsPlaceholder: string
 		instructionsHelp: string
 	}>
-	checkout: Readonly<{
+	allergens: Readonly<{
+		heading: string
+		weeklyHeading: string
+		weeklyEmpty: string
+		referenceHeading: string
+		packaging: string
+		ack: string
+	}>
+	interest: Readonly<{
 		heading: string
 		body: string
 		price: string
+		deposit: string
 		demoDisclosure: string
 		submit: string
 		pending: string
@@ -51,99 +50,89 @@ export type CopyNo = Readonly<{
 	}>
 	nextDelivery: Readonly<{
 		heading: string
-		unselected: string
-		calculating: string
 		recurrence: string
 	}>
-	app: Readonly<{
+	recipe: Readonly<{
 		heading: string
 		body: string
-		platform: string
-		download: string
-		comingSoon: string
 	}>
-	weekdays: Readonly<Record<Weekday, string>>
-	issues: Readonly<Record<SignupIssue['code'], string>>
+	issues: Readonly<Record<InterestIssue['code'], string>>
 }>
 
 export const copyNo: CopyNo = {
 	metadata: {
-		title: 'KetoKasse | Ketomat levert hjem hver uke',
+		title: 'KetoKasse | Keto-måltidskasse levert mandag',
 		description:
-			'Velg en fast leveringsdag og få en KetoKasse med kjøtt og grønnsaker levert hjem hver uke.',
+			'Ukentlig keto-måltidskasse. 5 middager, 2 porsjoner. Levering mandag. 1490 kr per uke.',
 	},
 	a11y: {
-		skipToSignup: 'Gå til påmelding',
+		skipToSignup: 'Gå til interesseregistrering',
 		required: 'Påkrevd',
 	},
 	hero: {
-		eyebrow: 'Rett fra gården, hjem til deg',
 		title: 'KetoKasse',
-		lead: 'En ukentlig kasse med kjøtt, grønnsaker og gode fettkilder.',
-		capacity: 'Sju leveringsdager. Én kunde per dag.',
+		lead: 'Ukentlig keto-måltidskasse. 5 middager, 2 porsjoner. Du lager maten hjemme.',
+		softLaunch: 'Begrenset plass.',
 	},
 	photo: {
 		alt: 'En KetoKasse med pakkede kjøttvarer og friske grønnsaker sett ovenfra.',
 	},
-	day: {
-		heading: 'Velg din faste leveringsdag',
-		body: 'Vi leverer til én kunde per dag. Dagen du velger, blir din faste dag hver uke.',
-		groupLabel: 'Tilgjengelige leveringsdager',
-		available: 'Ledig',
-		taken: 'Opptatt',
-		selected: 'Valgt',
+	offer: {
+		heading: 'Hva du får',
+		body: 'Ferdig kasse. Du legger ikke ut for maten.',
+		rows: [
+			'5 middager, 2 porsjoner (10 porsjoner)',
+			'Levering mandag',
+			'Digital oppskrift. Ingen papir.',
+			'1490 kr per uke, alt inkludert',
+			'+200 kr pant første gang (Sono-kasse, byttes ved neste levering)',
+			'Frysepose følger med. Ingen pant.',
+		],
 	},
 	address: {
-		heading: 'Hvor skal vi levere?',
-		body: 'Adressen brukes til de ukentlige leveringene dine.',
+		heading: 'Hvor skal kassen?',
+		body: 'Vi bruker adressen til mandagsleveringen.',
 		line1Label: 'Gateadresse og husnummer',
 		line1Placeholder: 'Eksempelveien 12',
 		postalCodeLabel: 'Postnummer',
 		postalCodePlaceholder: '0123',
 		cityLabel: 'Poststed',
 		cityPlaceholder: 'Oslo',
-		instructionsLabel: 'Leveringsinstruksjoner (valgfritt)',
+		instructionsLabel: 'Leveringsinstruksjoner',
 		instructionsPlaceholder: 'Sett kassen ved sidedøren',
-		instructionsHelp: 'Maks 300 tegn.',
+		instructionsHelp: 'Valgfritt. Maks 300 tegn.',
 	},
-	checkout: {
-		heading: 'Start ukesleveringen',
-		body: 'Betal med Stripe. Abonnementet fornyes hver uke til du sier opp.',
-		price: '649 kr per uke',
-		demoDisclosure: 'Dette er en demo. Ingen betaling gjennomføres.',
-		submit: 'Start ukesleveringen',
-		pending: 'Klargjør betaling …',
+	allergens: {
+		heading: 'Allergener',
+		weeklyHeading: 'Ukens kasse',
+		weeklyEmpty: 'Oppdateres hver uke',
+		referenceHeading: 'De 14 allergenene (referanse)',
+		packaging: 'Full ingrediensliste står på originale pakninger i kassen.',
+		ack: 'Jeg har lest allergeninformasjonen',
+	},
+	interest: {
+		heading: 'Meld interesse',
+		body: 'Ingen betaling her. Vi tar kontakt.',
+		price: '1490 kr per uke',
+		deposit: '+200 kr pant første gang',
+		demoDisclosure: 'Interesseregistrering. Ingen betaling gjennomføres.',
+		submit: 'Meld interesse',
+		pending: 'Sender …',
 		errorSummaryHeading: 'Sjekk opplysningene',
 		errorSummaryBody:
 			'Noen felt mangler eller må rettes før du kan fortsette.',
-		failure: 'Vi fikk ikke startet betalingen. Prøv igjen.',
-		successHeading: 'Demoen er fullført',
+		failure: 'Vi fikk ikke registrert interessen. Prøv igjen.',
+		successHeading: 'Interessen er registrert',
 	},
 	nextDelivery: {
-		heading: 'Din neste levering',
-		unselected: 'Velg en ledig dag for å se datoen.',
-		calculating: 'Beregner neste levering …',
-		recurrence: 'Deretter leverer vi samme dag hver uke.',
+		heading: 'Neste levering',
+		recurrence: 'Deretter hver mandag.',
 	},
-	app: {
-		heading: 'KetoKasse på iPhone',
-		body: 'Se leveringer og administrer abonnementet i appen.',
-		platform: 'Kun for iPhone.',
-		download: 'Last ned i App Store',
-		comingSoon: 'Kommer snart i App Store',
-	},
-	weekdays: {
-		mon: 'Mandag',
-		tue: 'Tirsdag',
-		wed: 'Onsdag',
-		thu: 'Torsdag',
-		fri: 'Fredag',
-		sat: 'Lørdag',
-		sun: 'Søndag',
+	recipe: {
+		heading: 'Oppskriften er digital',
+		body: 'Ingen papir i kassen. Du får oppskriften digitalt.',
 	},
 	issues: {
-		'day-required': 'Velg en ledig leveringsdag.',
-		'day-taken': 'Denne dagen er ikke lenger ledig. Velg en annen dag.',
 		'line1-required': 'Skriv inn gateadresse og husnummer.',
 		'line1-too-long': 'Gateadressen kan ha maks 120 tegn.',
 		'postal-code-invalid': 'Postnummeret må bestå av fire sifre.',
@@ -151,36 +140,20 @@ export const copyNo: CopyNo = {
 		'city-too-long': 'Poststedet kan ha maks 80 tegn.',
 		'instructions-too-long':
 			'Leveringsinstruksjonene kan ha maks 300 tegn.',
+		'allergen-required': 'Les allergeninformasjonen før du melder interesse.',
 	},
 }
 
-export function daySlotAriaLabelNo(
-	slot: DaySlot,
-	selected: boolean,
-): string {
-	const name = copyNo.weekdays[slot.day]
-	if (selected && slot.taken) {
-		return `${name}, valgt, men ikke lenger ledig`
-	}
-	if (selected) {
-		return `${name}, valgt`
-	}
-	if (slot.taken) {
-		return `${name}, opptatt`
-	}
-	return `${name}, ledig`
-}
-
 export function nextDeliverySentenceNo(delivery: NextDelivery): string {
-	return `Din neste levering er ${formatOsloDateNo(delivery.date)}.`
+	return `Neste mandagslevering er ${formatOsloDateNo(delivery.date)}.`
 }
 
-export function checkoutSuccessBodyNo(delivery: NextDelivery): string {
-	return `Ingen betaling ble gjennomført. I en ekte bestilling ville første levering vært ${formatOsloDateNo(delivery.date)}.`
+export function interestSuccessBodyNo(delivery: NextDelivery): string {
+	return `Ingen betaling ble gjennomført. Første mulige mandag er ${formatOsloDateNo(delivery.date)}.`
 }
 
-export function checkoutReferenceNo(reference: string): string {
-	return `Demoreferanse: ${reference}`
+export function interestReferenceNo(reference: string): string {
+	return `Referanse: ${reference}`
 }
 
 function formatOsloDateNo(date: OsloCalendarDate): string {

@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# generated from public/hero-NN.b64
+/public/ketokasse-hero.jpg
+
 # next.js
 /.next/
 /out/
