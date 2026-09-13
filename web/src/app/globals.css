@@ -238,18 +238,28 @@ body {
 	border-bottom: 0;
 }
 
-.kk-field-row {
-	display: grid;
-	grid-template-columns: 6.5rem minmax(0, 1fr);
-	border-bottom: 0.5px solid var(--kk-hairline);
+.kk-details {
+	padding-bottom: 0.9rem;
 }
 
-.kk-field-row .kk-field {
-	border-bottom: 0;
+.kk-details summary {
+	min-height: 2.75rem;
+	display: flex;
+	align-items: center;
+	font-size: 0.9375rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	color: var(--kk-forest-deep);
+	cursor: pointer;
 }
 
-.kk-field-row .kk-field:first-child {
-	border-right: 0.5px solid var(--kk-hairline);
+.kk-details[open] summary {
+	margin-bottom: 0.4rem;
+}
+
+.kk-details .kk-row-list {
+	color: var(--kk-muted);
+	font-size: 0.9375rem;
 }
 
 .kk-label {

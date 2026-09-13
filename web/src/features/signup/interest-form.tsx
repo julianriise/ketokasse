@@ -141,33 +141,31 @@ function AddressSection({
 					issue={visibleIssue(validation, hasSubmitted, 'line1')}
 					onChange={(value) => onEdit('line1', value)}
 				/>
-				<div className="kk-field-row">
-					<TextField
-						id="field-postalCode"
-						label={copyNo.address.postalCodeLabel}
-						required
-						value={draft.address.postalCode}
-						placeholder={copyNo.address.postalCodePlaceholder}
-						autoComplete="postal-code"
-						inputMode="numeric"
-						issue={visibleIssue(
-							validation,
-							hasSubmitted,
-							'postalCode',
-						)}
-						onChange={(value) => onEdit('postalCode', value)}
-					/>
-					<TextField
-						id="field-city"
-						label={copyNo.address.cityLabel}
-						required
-						value={draft.address.city}
-						placeholder={copyNo.address.cityPlaceholder}
-						autoComplete="address-level2"
-						issue={visibleIssue(validation, hasSubmitted, 'city')}
-						onChange={(value) => onEdit('city', value)}
-					/>
-				</div>
+				<TextField
+					id="field-postalCode"
+					label={copyNo.address.postalCodeLabel}
+					required
+					value={draft.address.postalCode}
+					placeholder={copyNo.address.postalCodePlaceholder}
+					autoComplete="postal-code"
+					inputMode="numeric"
+					issue={visibleIssue(
+						validation,
+						hasSubmitted,
+						'postalCode',
+					)}
+					onChange={(value) => onEdit('postalCode', value)}
+				/>
+				<TextField
+					id="field-city"
+					label={copyNo.address.cityLabel}
+					required
+					value={draft.address.city}
+					placeholder={copyNo.address.cityPlaceholder}
+					autoComplete="address-level2"
+					issue={visibleIssue(validation, hasSubmitted, 'city')}
+					onChange={(value) => onEdit('city', value)}
+				/>
 				<TextField
 					id="field-instructions"
 					label={copyNo.address.instructionsLabel}
@@ -220,14 +218,14 @@ function AllergenSection({
 						))}
 					</ul>
 				</div>
-				<div className="kk-row">
-					<p className="kk-row-label">
-						{copyNo.allergens.referenceHeading}
-					</p>
-					<p className="kk-row-help">
-						{EU_ALLERGEN_REFERENCE.join(', ')}.
-					</p>
-				</div>
+				<details className="kk-row kk-details">
+					<summary>{copyNo.allergens.referenceHeading}</summary>
+					<ul className="kk-row-list">
+						{EU_ALLERGEN_REFERENCE.map((item) => (
+							<li key={item}>{item}</li>
+						))}
+					</ul>
+				</details>
 				<p className="kk-row kk-row-note">
 					{copyNo.allergens.packaging}
 				</p>

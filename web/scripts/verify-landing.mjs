@@ -78,7 +78,16 @@ check(
 	!/5 kunder|én kunde per dag|sju leveringsdager/i.test(bodyText),
 )
 check('weekly allergen placeholder', bodyText.includes('Oppdateres hver uke'))
-check('14 allergen helper', bodyText.includes('Glutenholdig korn'))
+check(
+	'14 allergen helper',
+	bodyText.includes('De 14 allergenene') ||
+		(await page.locator('.kk-details').count()) > 0,
+)
+await page.locator('.kk-details summary').click()
+check(
+	'14 allergen list',
+	await page.getByText('Glutenholdig korn', { exact: true }).isVisible(),
+)
 check('packaging note', bodyText.includes('originale pakninger'))
 
 const allergenBeforeSubmit = await page.evaluate(() => {
@@ -101,7 +110,7 @@ check(
 )
 check(
 	'allergen required',
-	await page.getByText('Les allergeninformasjonen').isVisible(),
+	await page.locator('#allergen-error').isVisible(),
 )
 await page.screenshot({
 	path: `${out}/ketokasse_validation.png`,
@@ -116,7 +125,7 @@ await page.locator('.kk-pay').click()
 await page.waitForTimeout(200)
 check(
 	'blocks submit without allergen ack',
-	await page.getByText('Les allergeninformasjonen').isVisible(),
+	await page.locator('#allergen-error').isVisible(),
 )
 
 await page.locator('#field-allergenAck').check()
