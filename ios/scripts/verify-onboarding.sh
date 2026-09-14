@@ -159,6 +159,18 @@ if not can_continue:
 for step in ["cooking", "goal", "allergies", "address", "household", "pricing"]:
     if f"case .{step}" not in can_continue.group(0):
         raise SystemExit(f"canContinue missing .{step}")
+for needle in [
+    "return true",
+    "return goal != nil",
+    "return !set.isEmpty",
+    "return false",
+    "return !housing.needsFloor || floor != nil",
+    "return !name.trimmingCharacters",
+    "return plan != nil",
+]:
+    if needle not in can_continue.group(0):
+        raise SystemExit(f"canContinue missing explicit {needle!r}")
+
 
 pricing = read("Features/Onboarding/PricingView.swift")
 for needle in ["5 måltider for 2", "FERDIG", "Samme kutt", "ikke mer i lomma"]:
