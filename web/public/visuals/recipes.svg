@@ -1,25 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 640" fill="none">
-  <rect x="118" y="36" width="324" height="568" rx="48" fill="#1B4332"/>
+  <rect x="118" y="36" width="324" height="568" rx="48" fill="#00473C"/>
   <rect x="136" y="68" width="288" height="504" rx="28" fill="#FFF"/>
-  <rect x="232" y="80" width="96" height="14" rx="7" fill="#1B4332"/>
-  <rect x="160" y="116" width="240" height="132" rx="20" fill="#FFF0E5"/>
-  <circle cx="220" cy="182" r="36" fill="#58CC02"/>
-  <ellipse cx="210" cy="176" rx="12" ry="16" fill="#1B4332"/>
-  <ellipse cx="228" cy="172" rx="10" ry="14" fill="#1B4332"/>
-  <rect x="268" y="158" width="108" height="14" rx="7" fill="#58CC02"/>
+  <rect x="232" y="80" width="96" height="14" rx="7" fill="#00473C"/>
+  <rect x="160" y="116" width="240" height="132" rx="20" fill="#F9DFCE"/>
+  <circle cx="220" cy="182" r="36" fill="#00473C"/>
+  <ellipse cx="210" cy="176" rx="12" ry="16" fill="#00473C"/>
+  <ellipse cx="228" cy="172" rx="10" ry="14" fill="#00473C"/>
+  <rect x="268" y="158" width="108" height="14" rx="7" fill="#00473C"/>
   <rect x="268" y="182" width="88" height="10" rx="5" fill="#E5E5E5"/>
   <rect x="268" y="200" width="72" height="10" rx="5" fill="#E5E5E5"/>
-  <rect x="160" y="268" width="168" height="16" rx="8" fill="#1B4332"/>
+  <rect x="160" y="268" width="168" height="16" rx="8" fill="#00473C"/>
   <rect x="160" y="304" width="240" height="12" rx="6" fill="#E5E5E5"/>
   <rect x="160" y="328" width="216" height="12" rx="6" fill="#E5E5E5"/>
   <rect x="160" y="352" width="188" height="12" rx="6" fill="#E5E5E5"/>
-  <circle cx="176" cy="400" r="12" fill="#58CC02"/>
+  <circle cx="176" cy="400" r="12" fill="#00473C"/>
   <path d="M171 400l3.2 3.4 7-7.2" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
   <rect x="198" y="394" width="160" height="12" rx="6" fill="#E5E5E5"/>
-  <circle cx="176" cy="440" r="12" fill="#58CC02"/>
+  <circle cx="176" cy="440" r="12" fill="#00473C"/>
   <path d="M171 440l3.2 3.4 7-7.2" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
   <rect x="198" y="434" width="140" height="12" rx="6" fill="#E5E5E5"/>
-  <circle cx="176" cy="480" r="12" fill="#DDF4FF"/>
+  <circle cx="176" cy="480" r="12" fill="#D6E9E9"/>
   <rect x="198" y="474" width="176" height="12" rx="6" fill="#E5E5E5"/>
-  <rect x="248" y="532" width="104" height="18" rx="9" fill="#58CC02"/>
+  <rect x="248" y="532" width="104" height="18" rx="9" fill="#00473C"/>
 </svg>

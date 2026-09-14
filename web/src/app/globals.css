@@ -1,19 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --kk-forest: #1b4332;
-  --kk-ink: #3c3c3c;
-  --kk-muted: #777777;
-  --kk-lime: #58cc02;
-  --kk-lime-edge: #46a302;
-  --kk-sky: #ddf4ff;
-  --kk-mint: #e8f8d8;
-  --kk-peach: #fff0e5;
-  --kk-gold: #ffc800;
-  --kk-berry: #ce82ff;
-  --kk-blue: #1cb0f6;
-  --kk-line: #e5e5e5;
+  --kk-forest: #00473c;
+  --kk-ink: #0e150e;
+  --kk-muted: #8c8c82;
+  --kk-lime: #e6ff55;
+  --kk-lime-edge: #0e150e;
+  --kk-lime-lid: #2d6b52;
+  --kk-lime-sprout: #e6ff55;
+  --kk-sky: #d6e9e9;
+  --kk-mint: #d8e5d6;
+  --kk-peach: #f9dfce;
+  --kk-gold: #e59700;
+  --kk-berry: #a61846;
+  --kk-blue: #898989;
+  --kk-line: #deded6;
   --kk-white: #ffffff;
+  --kk-blush: #f9dfce;
   --kk-band: 61.25rem;
 }
 
@@ -103,7 +106,7 @@ body {
   align-items: center;
   gap: 0.45rem;
   min-width: 0;
-  color: var(--kk-lime);
+  color: var(--kk-forest);
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -128,8 +131,8 @@ body {
   border: 0;
   border-bottom: 4px solid var(--kk-lime-edge);
   border-radius: 1rem;
-  background: var(--kk-lime);
-  color: var(--kk-white);
+  background: var(--kk-forest);
+  color: var(--kk-lime);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.8px;
@@ -168,7 +171,7 @@ body {
   border: 2px solid var(--kk-line);
   border-radius: 0.85rem;
   background: var(--kk-white);
-  color: #111;
+  color: var(--kk-ink);
   text-decoration: none;
 }
 
@@ -276,7 +279,7 @@ body {
 }
 
 .kk-story-heading {
-  color: var(--kk-lime);
+  color: var(--kk-forest);
 }
 
 .kk-story-body {
@@ -377,7 +380,7 @@ body {
 
 .kk-footer-brand {
   margin: 0;
-  color: var(--kk-lime);
+  color: var(--kk-forest);
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.04em;
