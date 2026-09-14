@@ -35,7 +35,10 @@ struct HomeShellView: View {
             CookingStubView(dish: dish)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView(answers: answers, onRestart: onRestart)
+            SettingsView(answers: answers, onRestart: {
+                showSettings = false
+                onRestart()
+            })
         }
     }
 }
