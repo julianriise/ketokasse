@@ -78,35 +78,9 @@ enum HousingKind: String, CaseIterable, Identifiable, Hashable {
     var needsFloor: Bool { self != .house }
 }
 
-enum Personality: String, CaseIterable, Identifiable, Hashable {
-    case crate
-    case leaf
-    case carrot
-    case flame
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .crate: "Kasse"
-        case .leaf: "Blad"
-        case .carrot: "Gulrot"
-        case .flame: "Flamme"
-        }
-    }
-
-    var symbol: String {
-        switch self {
-        case .crate: "shippingbox.fill"
-        case .leaf: "leaf.fill"
-        case .carrot: "carrot.fill"
-        case .flame: "flame.fill"
-        }
-    }
-}
-
 enum FamilyRole: String, CaseIterable, Identifiable, Hashable {
-    case adult
+    case man
+    case woman
     case child
     case baby
 
@@ -114,7 +88,8 @@ enum FamilyRole: String, CaseIterable, Identifiable, Hashable {
 
     var title: String {
         switch self {
-        case .adult: "Voksen"
+        case .man: "Mann"
+        case .woman: "Dame"
         case .child: "Barn"
         case .baby: "Baby"
         }
@@ -123,8 +98,8 @@ enum FamilyRole: String, CaseIterable, Identifiable, Hashable {
 
 struct FamilyMember: Identifiable, Equatable, Hashable {
     var id = UUID()
-    var name = ""
-    var role: FamilyRole = .adult
+    var name: String
+    var role: FamilyRole
 }
 
 enum MealPlan: String, CaseIterable, Identifiable, Hashable {
@@ -155,10 +130,12 @@ final class OnboardingState {
     var allergies: AllergyAnswer?
     var housing: HousingKind?
     var floor: Int?
-    var name = ""
-    var personality: Personality?
     var family: [FamilyMember] = []
     var plan: MealPlan?
+
+    var primaryName: String {
+        family.first?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
 
     static let floors = Array(1...8)
 
@@ -202,8 +179,10 @@ final class OnboardingState {
         }
     }
 
-    func addFamilyMember() {
-        family.append(FamilyMember())
+    func addFamilyMember(name: String, role: FamilyRole) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        family.append(FamilyMember(name: trimmed, role: role))
     }
 
     func removeFamilyMember(_ member: FamilyMember) {
@@ -229,7 +208,9 @@ final class OnboardingState {
             guard let housing else { return false }
             return !housing.needsFloor || floor != nil
         case .household:
-            return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && personality != nil
+            return family.contains {
+                !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            }
         case .pricing:
             return plan != nil
         }
