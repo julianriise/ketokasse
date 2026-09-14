@@ -1,18 +1,34 @@
 import SwiftUI
 
+struct WeekBoardDragActiveKey: PreferenceKey {
+    static var defaultValue = false
+
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
+    }
+}
+
 struct WeekPlannerView: View {
+    private static let boardSpace = "weekBoard"
+
     @Environment(WeekStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @GestureState(resetTransaction: Transaction(animation: nil)) private var drag = WeekSlotDrag.inactive
     @State private var items: [WeekSlotItem] = []
     @State private var hoverIndex: Int?
+    @State private var dropSettled = false
     @State private var liftCount = 0
     @State private var hoverTick = 0
     @State private var dropCount = 0
 
     private var displayedItems: [WeekSlotItem] {
         items.isEmpty ? WeekSlotItem.make(from: store.plan.slots) : items
+    }
+
+    private var dropWellVisible: Bool {
+        guard !dropSettled, drag.isActive, let hoverIndex, let source = drag.source else { return false }
+        return hoverIndex != source
     }
 
     var body: some View {
@@ -44,6 +60,7 @@ struct WeekPlannerView: View {
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(KKColor.white.ignoresSafeArea())
+        .preference(key: WeekBoardDragActiveKey.self, value: drag.isActive)
         .sensoryFeedback(.impact(weight: .light), trigger: liftCount)
         .sensoryFeedback(.selection, trigger: hoverTick)
         .sensoryFeedback(.impact(weight: .medium), trigger: dropCount)
@@ -56,6 +73,7 @@ struct WeekPlannerView: View {
                 liftCount += 1
             } else {
                 hoverIndex = nil
+                dropSettled = false
             }
         }
         .onChange(of: hoverIndex) { _, new in
@@ -72,28 +90,41 @@ struct WeekPlannerView: View {
                         .frame(height: KKMotion.weekRowHeight)
                 }
             }
-            VStack(spacing: KKMotion.weekRowSpacing) {
-                ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
-                    dishTile(item, index: index)
+            ZStack(alignment: .top) {
+                WeekDropWell()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: KKMotion.weekRowHeight)
+                    .offset(y: CGFloat(hoverIndex ?? 0) * KKMotion.weekRowStride)
+                    .opacity(dropWellVisible ? 1 : 0)
+                    .animation(KKMotion.snappy(reduceMotion), value: hoverIndex)
+                    .animation(KKMotion.snappy(reduceMotion), value: dropWellVisible)
+                    .allowsHitTesting(false)
+                VStack(spacing: KKMotion.weekRowSpacing) {
+                    ForEach(Array(displayedItems.enumerated()), id: \.element.id) { index, item in
+                        dishTile(item, index: index)
+                    }
                 }
             }
         }
+        .coordinateSpace(.named(Self.boardSpace))
     }
 
     private func dishTile(_ item: WeekSlotItem, index: Int) -> some View {
-        let source = drag.source == index && drag.isActive
+        let lifted = drag.id == item.id && drag.isActive
+        let followsFinger = lifted && !dropSettled
         return WeekDishTile(
             title: item.title,
-            isSource: source,
+            isSource: lifted,
             isTarget: isTarget(index),
             reduceMotion: reduceMotion
         )
-        .offset(x: source ? drag.translation.width : 0, y: source ? drag.translation.height : 0)
+        .offset(followsFinger ? drag.translation : .zero)
+        .rotationEffect(tilt(for: followsFinger))
         .animation(KKMotion.snappy(reduceMotion)) { content in
-            content.offset(y: source ? 0 : gapOffset(for: index))
+            content.offset(y: followsFinger ? 0 : gapOffset(for: index))
         }
-        .zIndex(source ? 10 : 0)
-        .gesture(slotGesture(for: index))
+        .zIndex(followsFinger ? 10 : 0)
+        .gesture(slotGesture(for: item, index: index))
         .accessibilityLabel(accessibilityLabel(for: index, title: item.title))
         .accessibilityHint("Hold inne og dra for å flytte")
         .accessibilityAction(named: "Flytt opp") {
@@ -104,15 +135,15 @@ struct WeekPlannerView: View {
         }
     }
 
-    private func slotGesture(for index: Int) -> some Gesture {
+    private func slotGesture(for item: WeekSlotItem, index: Int) -> some Gesture {
         LongPressGesture(minimumDuration: 0.28, maximumDistance: 12)
-            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
+            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.boardSpace)))
             .updating($drag) { value, state, _ in
                 switch value {
                 case .first(true):
-                    state = .pressing(index)
+                    state = .pressing(id: item.id, index: index)
                 case .second(true, let dragValue):
-                    state = .dragging(index, dragValue?.translation ?? .zero)
+                    state = .dragging(id: item.id, index: index, translation: dragValue?.translation ?? .zero)
                 default:
                     break
                 }
@@ -132,22 +163,37 @@ struct WeekPlannerView: View {
                     translation = .zero
                 }
                 let target = WeekSlotDrag.targetIndex(source: index, translation: translation)
-                moveSlot(from: index, to: target, animated: false)
-                hoverIndex = nil
+                commitDrag(from: index, to: target)
             }
     }
 
     private func isTarget(_ index: Int) -> Bool {
-        guard let hoverIndex, let source = drag.source else { return false }
+        guard !dropSettled, let hoverIndex, let source = drag.source else { return false }
         return hoverIndex == index && source != index && drag.isActive
     }
 
     private func gapOffset(for index: Int) -> CGFloat {
-        guard let source = drag.source, let hoverIndex, source != index else { return 0 }
+        guard !dropSettled, let source = drag.source, let hoverIndex, source != index else { return 0 }
         let stride = KKMotion.weekRowStride
         if source < hoverIndex, index > source, index <= hoverIndex { return -stride }
         if hoverIndex < source, index >= hoverIndex, index < source { return stride }
         return 0
+    }
+
+    private func tilt(for followsFinger: Bool) -> Angle {
+        guard followsFinger, !reduceMotion else { return .zero }
+        let clamped = min(max(drag.translation.width / 28, -8), 8)
+        return .degrees(Double(clamped))
+    }
+
+    private func commitDrag(from source: Int, to target: Int) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            dropSettled = true
+            hoverIndex = nil
+            moveSlot(from: source, to: target, animated: false)
+        }
     }
 
     private func moveSlot(from source: Int, to target: Int, animated: Bool) {
@@ -164,9 +210,7 @@ struct WeekPlannerView: View {
         if animated {
             withAnimation(KKMotion.snappy(reduceMotion), apply)
         } else {
-            var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction, apply)
+            apply()
         }
         dropCount += 1
     }
@@ -179,19 +223,26 @@ struct WeekPlannerView: View {
 
 private enum WeekSlotDrag: Equatable {
     case inactive
-    case pressing(Int)
-    case dragging(Int, CGSize)
+    case pressing(id: String, index: Int)
+    case dragging(id: String, index: Int, translation: CGSize)
+
+    var id: String? {
+        switch self {
+        case .inactive: nil
+        case .pressing(let id, _), .dragging(let id, _, _): id
+        }
+    }
 
     var source: Int? {
         switch self {
         case .inactive: nil
-        case .pressing(let index), .dragging(let index, _): index
+        case .pressing(_, let index), .dragging(_, let index, _): index
         }
     }
 
     var translation: CGSize {
         switch self {
-        case .dragging(_, let translation): translation
+        case .dragging(_, _, let translation): translation
         case .inactive, .pressing: .zero
         }
     }
@@ -239,6 +290,17 @@ private struct WeekDayChip: View {
     }
 }
 
+private struct WeekDropWell: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(KKColor.lime.opacity(0.38))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(KKColor.forest, style: StrokeStyle(lineWidth: 2, dash: [6, 4]))
+            )
+    }
+}
+
 private struct WeekDishTile: View {
     var title: String?
     var isSource: Bool
@@ -264,7 +326,10 @@ private struct WeekDishTile: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(isTarget || isSource ? KKColor.forest : KKColor.line, lineWidth: isTarget || isSource ? 2 : 1)
+                    .stroke(
+                        isTarget || isSource ? KKColor.forest : KKColor.line,
+                        lineWidth: isTarget || isSource ? 2 : 1
+                    )
             )
             .shadow(
                 color: KKColor.forest.opacity(isSource ? 0.22 : 0),

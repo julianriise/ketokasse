@@ -73,6 +73,10 @@ if "Start middag" not in home_text:
     raise SystemExit("HomeView missing Start middag")
 if "HomeShellView" not in content:
     raise SystemExit("ContentView missing HomeShellView")
+if "scrollDisabled(weekBoardDragging)" not in home_text:
+    raise SystemExit("Home pager must lock while a dinner is lifted")
+if "WeekBoardDragActiveKey" not in home_text:
+    raise SystemExit("Home pager must read WeekBoardDragActiveKey")
 assert_week_reorder_contract(week_text, store_text)
 assert_move_slot_behavior()
 

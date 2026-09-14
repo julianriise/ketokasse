@@ -165,6 +165,7 @@ def assert_week_reorder_contract(week_text: str, store_text: str) -> None:
         "draggableIfPresent": "WeekPlannerView still has draggableIfPresent",
         "Hold de tre strekene": "WeekPlannerView still has the three-bar copy",
         ".id(UUID())": "WeekPlannerView resets identity with UUID",
+        "coordinateSpace: .local": "WeekPlannerView still drags in local tile space",
     }
     for needle, message in banned_week.items():
         if needle in week_text:
@@ -178,6 +179,9 @@ def assert_week_reorder_contract(week_text: str, store_text: str) -> None:
         "@GestureState": "WeekPlannerView missing GestureState",
         "accessibilityReduceMotion": "WeekPlannerView missing Reduce Motion",
         "sensoryFeedback": "WeekPlannerView missing haptics",
+        "coordinateSpace: .named": "WeekPlannerView must drag in a named board space",
+        "WeekBoardDragActiveKey": "WeekPlannerView missing pager lock preference",
+        "dropSettled": "WeekPlannerView must freeze the lift on drop",
     }
     for needle, message in required_week.items():
         if needle not in week_text:
