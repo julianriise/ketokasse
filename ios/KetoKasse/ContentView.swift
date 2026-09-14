@@ -1,8 +1,17 @@
 import SwiftUI
 
 struct ContentView: View {
+    @AppStorage("onboardingComplete") private var onboardingComplete = false
+    @State private var answers = OnboardingState()
+
     var body: some View {
-        WelcomeView()
+        if onboardingComplete {
+            HomePlaceholderView(name: answers.name)
+        } else {
+            OnboardingFlow(answers: answers) {
+                onboardingComplete = true
+            }
+        }
     }
 }
 

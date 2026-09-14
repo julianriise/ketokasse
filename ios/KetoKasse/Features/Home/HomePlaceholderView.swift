@@ -1,48 +1,39 @@
 import SwiftUI
 
-struct WelcomeCopy: Equatable, Sendable {
-    var headline: String
-    var cta: String
-    var footer: String
-
-    static let bokmal = WelcomeCopy(
-        headline: "Den gøyeste måten å spise keto på",
-        cta: "KOM I GANG",
-        footer: "Ingen binding · Avslutt når som helst"
-    )
-}
-
-struct WelcomeView: View {
-    var copy: WelcomeCopy = .bokmal
-    var onContinue: () -> Void = {}
+struct HomePlaceholderView: View {
+    var name: String
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var hopToken = 0
     @State private var isBobbing = false
+
+    private var greeting: String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return "Hei"
+        }
+        return "Hei, \(trimmed)"
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 24)
             mascot
-            Text(copy.headline)
+            Text(greeting)
                 .font(KKFont.headline)
                 .tracking(KKFont.headlineTracking)
                 .foregroundStyle(KKColor.ink)
                 .multilineTextAlignment(.center)
                 .padding(.top, 12)
-            GetStartedButton(title: copy.cta, action: hop)
-                .padding(.top, 32)
-            Text(copy.footer)
+            Text("Uka di er klar.")
                 .font(KKFont.body)
                 .foregroundStyle(KKColor.muted)
                 .multilineTextAlignment(.center)
-                .padding(.top, 16)
+                .padding(.top, 8)
             Spacer(minLength: 24)
         }
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(KKColor.white.ignoresSafeArea())
-        .sensoryFeedback(.impact(weight: .light), trigger: hopToken)
         .onAppear { startBob() }
     }
 
@@ -51,15 +42,12 @@ struct WelcomeView: View {
             Circle()
                 .fill(KKColor.sky)
                 .frame(width: KKMotion.skyCircle, height: KKMotion.skyCircle)
-            MascotView(hopToken: hopToken, isBobbing: isBobbing)
+            MascotView(hopToken: 0, isBobbing: isBobbing)
         }
+        .scaleEffect(160 / KKMotion.skyCircle)
+        .frame(width: 160, height: 160)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("KetoKasse-maskot")
-    }
-
-    private func hop() {
-        hopToken += 1
-        onContinue()
     }
 
     private func startBob() {
@@ -68,6 +56,6 @@ struct WelcomeView: View {
     }
 }
 
-#Preview("iPhone") {
-    WelcomeView()
+#Preview {
+    HomePlaceholderView(name: "Ola")
 }
