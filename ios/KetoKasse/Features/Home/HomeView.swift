@@ -31,8 +31,8 @@ struct HomeShellView: View {
         .tint(KKColor.forest)
         .background(KKColor.white.ignoresSafeArea())
         .sensoryFeedback(.selection, trigger: page)
-        .sheet(item: $cookingDish) { dish in
-            CookingStubView(dish: dish)
+        .fullScreenCover(item: $cookingDish) { dish in
+            CookingCover(dish: dish)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView(answers: answers, onRestart: {
@@ -49,6 +49,7 @@ struct HomeView: View {
     var onStartDinner: (Dish) -> Void
 
     @Environment(WeekStore.self) private var store
+    @Environment(PointsStore.self) private var points
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var greeting: String {
@@ -95,6 +96,16 @@ struct HomeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                    Text("\(points.total)")
+                        .contentTransition(reduceMotion ? .identity : .numericText())
+                }
+                .font(KKFont.cta)
+                .foregroundStyle(KKColor.forest)
+                .accessibilityLabel("\(points.total) poeng")
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: onOpenSettings) {
                     Image(systemName: "gearshape")
@@ -107,29 +118,37 @@ struct HomeView: View {
     }
 }
 
-struct CookingStubView: View {
+private struct CookingCover: View {
     var dish: Dish
+
+    var body: some View {
+        if let recipe = RecipeRegistry.recipe(forDishTitle: dish.title) {
+            CookingSessionView(recipe: recipe)
+        } else {
+            MissingRecipeView(title: dish.title)
+        }
+    }
+}
+
+private struct MissingRecipeView: View {
+    var title: String
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 16) {
-            Text(dish.title)
+            Text(title)
                 .font(KKFont.headline)
                 .tracking(KKFont.headlineTracking)
                 .foregroundStyle(KKColor.ink)
                 .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-            Text("Oppskrift kommer.")
+            Text("Oppskrift mangler.")
                 .font(KKFont.body)
                 .foregroundStyle(KKColor.muted)
             GetStartedButton(title: "Lukk", action: { dismiss() })
-                .padding(.top, 8)
         }
         .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(KKColor.white.ignoresSafeArea())
-        .presentationDetents([.medium])
-        .presentationDragIndicator(.visible)
     }
 }
 
@@ -140,4 +159,5 @@ struct CookingStubView: View {
     answers.addFamilyMember(name: "Ola", role: .man)
     return HomeShellView(answers: answers, onRestart: {})
         .environment(WeekStore(defaults: UserDefaults(suiteName: "no.ketokasse.preview.home.week")!))
+        .environment(PointsStore(defaults: UserDefaults(suiteName: "no.ketokasse.preview.home.points")!))
 }

@@ -123,10 +123,10 @@ if "onboardingComplete = false" not in content:
 if "restartOnboarding" not in content:
     raise SystemExit("ContentView missing restartOnboarding")
 
-if "draggableIfPresent" not in week:
-    raise SystemExit("WeekPlannerView drag was broken")
-if "dropDestination" not in week:
-    raise SystemExit("WeekPlannerView drop was broken")
+if "List" not in week or ".onMove" not in week or "editMode" not in week:
+    raise SystemExit("WeekPlannerView native onMove was broken")
+if "draggable" in week or "dropDestination" in week or "draggableIfPresent" in week:
+    raise SystemExit("WeekPlannerView still has custom drag")
 
 root_swift = list(app.rglob("*.swift"))
 for path in root_swift:
