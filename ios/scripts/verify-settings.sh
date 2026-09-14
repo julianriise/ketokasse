@@ -16,6 +16,8 @@ python3 - "$APP" <<'PY' || fail "settings checks"
 import pathlib, re, sys
 
 app = pathlib.Path(sys.argv[1])
+sys.path.insert(0, str(app.parent / "scripts"))
+from week_planner import assert_week_reorder_contract
 
 def read(rel):
     return (app / rel).read_text()
@@ -25,6 +27,7 @@ state = read("Features/Onboarding/OnboardingState.swift")
 home = read("Features/Home/HomeView.swift")
 content = read("ContentView.swift")
 week = read("Features/Home/WeekPlannerView.swift")
+store = read("Features/Week/WeekStore.swift")
 
 if "struct Snapshot" not in state:
     raise SystemExit("OnboardingState missing nested Snapshot")
@@ -123,10 +126,7 @@ if "onboardingComplete = false" not in content:
 if "restartOnboarding" not in content:
     raise SystemExit("ContentView missing restartOnboarding")
 
-if "List" not in week or ".onMove" not in week or "editMode" not in week:
-    raise SystemExit("WeekPlannerView native onMove was broken")
-if "draggable" in week or "dropDestination" in week or "draggableIfPresent" in week:
-    raise SystemExit("WeekPlannerView still has custom drag")
+assert_week_reorder_contract(week, store)
 
 root_swift = list(app.rglob("*.swift"))
 for path in root_swift:

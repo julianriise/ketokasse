@@ -12,6 +12,7 @@ struct HomeShellView: View {
     @State private var cookingDish: Dish?
     @State private var page: Page = .today
     @State private var showSettings = false
+    @State private var weekBoardDragging = false
 
     var body: some View {
         TabView(selection: $page) {
@@ -28,6 +29,8 @@ struct HomeShellView: View {
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
+        .scrollDisabled(weekBoardDragging)
+        .onPreferenceChange(WeekBoardDragActiveKey.self) { weekBoardDragging = $0 }
         .tint(KKColor.forest)
         .background(KKColor.white.ignoresSafeArea())
         .sensoryFeedback(.selection, trigger: page)

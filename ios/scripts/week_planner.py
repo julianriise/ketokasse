@@ -136,5 +136,74 @@ def filled_titles(slots: list[str | None]) -> list[str]:
     return [title for title in slots if title]
 
 
+def move_slot(slots: list[str | None], source: int, target: int) -> list[str | None]:
+    if source == target:
+        return list(slots)
+    next_slots = list(slots)
+    item = next_slots.pop(source)
+    next_slots.insert(target, item)
+    return next_slots
+
+
+def assert_move_slot_behavior() -> None:
+    if move_slot(["A", "B", "C", "D", "E", "F", "G"], 0, 3) != ["B", "C", "D", "A", "E", "F", "G"]:
+        raise SystemExit("move down did not shift later days toward the source")
+    if move_slot(["A", "B", "C", "D", "E", "F", "G"], 3, 0) != ["D", "A", "B", "C", "E", "F", "G"]:
+        raise SystemExit("move up did not shift earlier days toward the source")
+    if move_slot(["A", "B", None, "C", None, "D", "E"], 0, 2) != ["B", None, "A", "C", None, "D", "E"]:
+        raise SystemExit("move onto Fri did not leave an empty source day")
+    if move_slot(["A", "B", "C", "D", "E", "F", "G"], 2, 2) != ["A", "B", "C", "D", "E", "F", "G"]:
+        raise SystemExit("same-slot move changed the plan")
+
+
+def assert_week_reorder_contract(week_text: str, store_text: str) -> None:
+    banned_week = {
+        "editMode": "WeekPlannerView still has editMode",
+        ".onMove": "WeekPlannerView still has onMove",
+        "draggable": "WeekPlannerView still has draggable",
+        "dropDestination": "WeekPlannerView still has dropDestination",
+        "draggableIfPresent": "WeekPlannerView still has draggableIfPresent",
+        "Hold de tre strekene": "WeekPlannerView still has the three-bar copy",
+        ".id(UUID())": "WeekPlannerView resets identity with UUID",
+        "coordinateSpace: .local": "WeekPlannerView still drags in local tile space",
+    }
+    for needle, message in banned_week.items():
+        if needle in week_text:
+            raise SystemExit(message)
+    if "List {" in week_text or "List(" in week_text:
+        raise SystemExit("WeekPlannerView still has List")
+    required_week = {
+        "LongPressGesture": "WeekPlannerView missing LongPressGesture",
+        "sequenced(before:": "WeekPlannerView missing sequenced drag",
+        "DragGesture": "WeekPlannerView missing DragGesture",
+        "@GestureState": "WeekPlannerView missing GestureState",
+        "accessibilityReduceMotion": "WeekPlannerView missing Reduce Motion",
+        "sensoryFeedback": "WeekPlannerView missing haptics",
+        "coordinateSpace: .named": "WeekPlannerView must drag in a named board space",
+        "WeekBoardDragActiveKey": "WeekPlannerView missing pager lock preference",
+        "dropSettled": "WeekPlannerView must freeze the lift on drop",
+    }
+    for needle, message in required_week.items():
+        if needle not in week_text:
+            raise SystemExit(message)
+    required_store = {
+        "moveSlot": "WeekStore missing moveSlot",
+        "remove(at:": "WeekStore missing remove(at:)",
+        "insert(": "WeekStore missing insert",
+    }
+    for needle, message in required_store.items():
+        if needle not in store_text:
+            raise SystemExit(message)
+    banned_store = {
+        "fromOffsets": "WeekStore still has Array.move",
+        "moveSlots": "WeekStore still has moveSlots",
+        "swapAt": "WeekStore still has swapAt",
+        "moveDish": "WeekStore still has moveDish",
+    }
+    for needle, message in banned_store.items():
+        if needle in store_text:
+            raise SystemExit(message)
+
+
 def default_pool_path() -> Path:
     return Path(__file__).resolve().parent.parent / "KetoKasse" / "Features" / "Week" / "DishPool.swift"

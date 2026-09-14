@@ -22,6 +22,8 @@ sys.path.insert(0, str(root / "scripts"))
 from week_planner import (
     DINNER_COUNT,
     PIZZA_TITLE,
+    assert_move_slot_behavior,
+    assert_week_reorder_contract,
     filled_titles,
     generate,
     parse_pizza_title,
@@ -71,26 +73,12 @@ if "Start middag" not in home_text:
     raise SystemExit("HomeView missing Start middag")
 if "HomeShellView" not in content:
     raise SystemExit("ContentView missing HomeShellView")
-if "List" not in week_text:
-    raise SystemExit("WeekPlannerView missing List")
-if ".onMove" not in week_text:
-    raise SystemExit("WeekPlannerView missing onMove")
-if "editMode" not in week_text:
-    raise SystemExit("WeekPlannerView missing editMode")
-if "draggable" in week_text:
-    raise SystemExit("WeekPlannerView still has draggable")
-if "dropDestination" in week_text:
-    raise SystemExit("WeekPlannerView still has dropDestination")
-if "draggableIfPresent" in week_text:
-    raise SystemExit("WeekPlannerView still has draggableIfPresent")
-if "moveSlots" not in store_text:
-    raise SystemExit("WeekStore missing moveSlots")
-if "fromOffsets" not in store_text:
-    raise SystemExit("WeekStore missing Array.move")
-if "swapAt" in store_text:
-    raise SystemExit("WeekStore still has swapAt")
-if "moveDish" in store_text:
-    raise SystemExit("WeekStore still has moveDish")
+if "scrollDisabled(weekBoardDragging)" not in home_text:
+    raise SystemExit("Home pager must lock while a dinner is lifted")
+if "WeekBoardDragActiveKey" not in home_text:
+    raise SystemExit("Home pager must read WeekBoardDragActiveKey")
+assert_week_reorder_contract(week_text, store_text)
+assert_move_slot_behavior()
 
 by_title = {dish.title: dish for dish in pool}
 

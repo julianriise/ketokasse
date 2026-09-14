@@ -11,8 +11,18 @@ enum KKMotion {
     static let hopLift: CGFloat = -18
     static let skyCircle: CGFloat = 280
 
+    static let dragLiftScale: CGFloat = 1.04
+    static let weekRowHeight: CGFloat = 64
+    static let weekRowSpacing: CGFloat = 8
+
+    static var weekRowStride: CGFloat { weekRowHeight + weekRowSpacing }
+
     static func snappy(_ reduceMotion: Bool) -> Animation? {
         reduceMotion ? nil : .snappy(duration: 0.28, extraBounce: 0.12)
+    }
+
+    static func bouncy(_ reduceMotion: Bool) -> Animation? {
+        reduceMotion ? nil : .bouncy(duration: 0.32, extraBounce: 0.16)
     }
 
     static func press(_ reduceMotion: Bool) -> Animation? {

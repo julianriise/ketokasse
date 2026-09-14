@@ -18,6 +18,8 @@ python3 - "$APP" <<'PY' || fail "cooking schema checks"
 import pathlib, re, sys
 
 app = pathlib.Path(sys.argv[1])
+sys.path.insert(0, str(app.parent / "scripts"))
+from week_planner import assert_week_reorder_contract
 
 def read(rel):
     return (app / rel).read_text()
@@ -119,14 +121,7 @@ if "PointsStore()" not in content:
 if ".environment(pointsStore)" not in content:
     raise SystemExit("ContentView does not inject PointsStore")
 
-if "List" not in week or ".onMove" not in week or "editMode" not in week:
-    raise SystemExit("native List.onMove was lost")
-if "draggable" in week or "dropDestination" in week:
-    raise SystemExit("custom drag returned")
-if "moveSlots" not in store or "fromOffsets" not in store:
-    raise SystemExit("WeekStore.moveSlots was lost")
-if "moveDish" in store or "swapAt" in store:
-    raise SystemExit("WeekStore swap path returned")
+assert_week_reorder_contract(week, store)
 
 swift = list(app.rglob("*.swift"))
 for path in swift:
@@ -136,7 +131,7 @@ for path in swift:
     if "StoreKit" in text or "import StoreKit" in text:
         raise SystemExit(f"StoreKit in {path}")
 
-print("ok  10 recipes keyed to DishPool, points persist, stub gone, onMove kept")
+print("ok  10 recipes keyed to DishPool, points persist, stub gone, week reorder kept")
 PY
 pass "cooking schema, registry, points, stub gone"
 echo "cooking checks passed"
