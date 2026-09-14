@@ -121,6 +121,12 @@ for needle in [
 ]:
     if needle not in ask:
         raise SystemExit(f"AskViews missing {needle!r}")
+if "ForEach(answers.family)" not in ask:
+    raise SystemExit("household member ForEach missing")
+if "MemberChip" not in ask:
+    raise SystemExit("MemberChip missing")
+if "ScrollView(.horizontal)" in ask:
+    raise SystemExit("household member chips still scroll horizontally")
 for dead in [
     "Hva skal vi kalle deg?",
     "Hva er viktigst for deg?",

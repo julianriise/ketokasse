@@ -144,17 +144,17 @@ struct HouseholdAskView: View {
     }
 
     private var memberStrip: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 8) {
-                ForEach(answers.family) { member in
-                    MemberChip(member: member) {
-                        removeMember(member)
-                    }
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 140), spacing: 8, alignment: .leading)],
+            alignment: .leading,
+            spacing: 8
+        ) {
+            ForEach(answers.family) { member in
+                MemberChip(member: member) {
+                    removeMember(member)
                 }
             }
         }
-        .scrollIndicators(.hidden)
-        .scrollBounceBehavior(.basedOnSize)
     }
 
     private var rolePicker: some View {
