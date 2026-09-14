@@ -56,7 +56,7 @@ enum AllergyCategory: String, CaseIterable, Identifiable, Hashable {
 }
 
 enum AllergyAnswer: Equatable, Hashable {
-    case none
+    case noAllergies
     case listed(Set<AllergyCategory>)
 }
 
@@ -163,8 +163,14 @@ final class OnboardingState {
     static let floors = Array(1...8)
 
     var noAllergiesSelected: Bool {
-        if case .none = allergies { return true }
-        return false
+        switch allergies {
+        case .noAllergies:
+            true
+        case .listed:
+            false
+        case nil:
+            false
+        }
     }
 
     func allergySelected(_ category: AllergyCategory) -> Bool {
@@ -175,12 +181,14 @@ final class OnboardingState {
     }
 
     func selectNoAllergies() {
-        allergies = .none
+        allergies = .noAllergies
     }
 
     func toggleAllergy(_ category: AllergyCategory) {
         switch allergies {
-        case .none, nil:
+        case nil:
+            allergies = .listed([category])
+        case .noAllergies:
             allergies = .listed([category])
         case .listed(let set):
             var next = set
@@ -210,7 +218,7 @@ final class OnboardingState {
             goal != nil
         case .allergies:
             switch allergies {
-            case .none:
+            case .noAllergies:
                 true
             case .listed(let set):
                 !set.isEmpty
