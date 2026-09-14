@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GetStartedButton: View {
     let title: String
+    var isEnabled: Bool = true
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -16,6 +17,8 @@ struct GetStartedButton: View {
                 .frame(maxWidth: .infinity, minHeight: KKMotion.pillMinHeight)
         }
         .buttonStyle(DuoPillButtonStyle(reduceMotion: reduceMotion))
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.45)
     }
 }
 
