@@ -6,16 +6,21 @@ struct HomeShellView: View {
         case week
     }
 
-    var name: String
+    @Bindable var answers: OnboardingState
     var onRestart: () -> Void
 
     @State private var cookingDish: Dish?
     @State private var page: Page = .today
+    @State private var showSettings = false
 
     var body: some View {
         TabView(selection: $page) {
-            HomeView(name: name, onRestart: onRestart) { dish in
-                cookingDish = dish
+            NavigationStack {
+                HomeView(answers: answers) {
+                    showSettings = true
+                } onStartDinner: { dish in
+                    cookingDish = dish
+                }
             }
             .tag(Page.today)
             WeekPlannerView()
@@ -29,19 +34,22 @@ struct HomeShellView: View {
         .sheet(item: $cookingDish) { dish in
             CookingStubView(dish: dish)
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsView(answers: answers, onRestart: onRestart)
+        }
     }
 }
 
 struct HomeView: View {
-    var name: String
-    var onRestart: () -> Void
+    @Bindable var answers: OnboardingState
+    var onOpenSettings: () -> Void
     var onStartDinner: (Dish) -> Void
 
     @Environment(WeekStore.self) private var store
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var greeting: String {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = answers.primaryName
         if trimmed.isEmpty {
             return "I dag"
         }
@@ -76,14 +84,23 @@ struct HomeView: View {
                 .foregroundStyle(KKColor.muted)
                 .padding(.top, 16)
             Spacer(minLength: 24)
-            Button("Start på nytt", action: onRestart)
-                .font(KKFont.body)
-                .foregroundStyle(KKColor.muted)
-                .padding(.bottom, 56)
         }
         .padding(.horizontal, 24)
+        .padding(.bottom, 56)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(KKColor.white.ignoresSafeArea())
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: onOpenSettings) {
+                    Image(systemName: "gearshape")
+                        .font(KKFont.cta)
+                        .foregroundStyle(KKColor.ink)
+                }
+                .accessibilityLabel("Innstillinger")
+            }
+        }
     }
 }
 
@@ -114,6 +131,10 @@ struct CookingStubView: View {
 }
 
 #Preview("Home") {
-    HomeShellView(name: "Ola", onRestart: {})
-        .environment(WeekStore(defaults: UserDefaults(suiteName: "no.ketokasse.preview.home")!))
+    let defaults = UserDefaults(suiteName: "no.ketokasse.preview.home")!
+    defaults.removePersistentDomain(forName: "no.ketokasse.preview.home")
+    let answers = OnboardingState(defaults: defaults)
+    answers.addFamilyMember(name: "Ola", role: .man)
+    return HomeShellView(answers: answers, onRestart: {})
+        .environment(WeekStore(defaults: UserDefaults(suiteName: "no.ketokasse.preview.home.week")!))
 }

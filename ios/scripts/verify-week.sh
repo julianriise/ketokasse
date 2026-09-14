@@ -69,8 +69,6 @@ if "Simuler ny uke" not in week_text:
     raise SystemExit("WeekPlannerView missing Simuler ny uke")
 if "Start middag" not in home_text:
     raise SystemExit("HomeView missing Start middag")
-if "Start på nytt" not in home_text:
-    raise SystemExit("HomeView missing Start på nytt")
 if "HomeShellView" not in content:
     raise SystemExit("ContentView missing HomeShellView")
 if "draggableIfPresent" not in week_text:

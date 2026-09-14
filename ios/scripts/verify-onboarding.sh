@@ -77,12 +77,12 @@ if "OnboardingFlow" not in content:
     raise SystemExit("ContentView missing OnboardingFlow")
 if "restartOnboarding" not in content:
     raise SystemExit("ContentView missing restartOnboarding")
-if "answers = OnboardingState()" not in content:
-    raise SystemExit("ContentView does not recreate OnboardingState on restart")
+if "answers.reset()" not in content:
+    raise SystemExit("ContentView restart does not call answers.reset()")
 if "onboardingComplete = false" not in content:
     raise SystemExit("ContentView does not clear onboardingComplete on restart")
-if "answers.primaryName" not in content:
-    raise SystemExit("ContentView does not greet with answers.primaryName")
+if "HomeShellView(answers:" not in content:
+    raise SystemExit("ContentView must pass answers into HomeShellView")
 if "answers.name" in content:
     raise SystemExit("ContentView still reads answers.name")
 
@@ -209,14 +209,20 @@ for needle in ["5 måltider for 2", "FERDIG", "Samme kutt", "ikke mer i lomma"]:
 home = read("Features/Home/HomeView.swift")
 if "Uka di er klar." in home:
     raise SystemExit("HomeView still has placeholder copy")
-if "Start på nytt" not in home:
-    raise SystemExit("HomeView missing restart button")
+if "Start på nytt" in home:
+    raise SystemExit("HomeView must not contain Start på nytt")
 if "onRestart" not in home:
-    raise SystemExit("HomeView missing onRestart")
+    raise SystemExit("HomeShellView missing onRestart")
 if "Start middag" not in home:
     raise SystemExit("HomeView missing dinner CTA")
 if "Hei," not in home:
     raise SystemExit("HomeView missing named greeting")
+if "answers.primaryName" not in home:
+    raise SystemExit("HomeView does not greet with answers.primaryName")
+if 'accessibilityLabel("Innstillinger")' not in home:
+    raise SystemExit("Home missing Innstillinger accessibilityLabel")
+if "gearshape" not in home:
+    raise SystemExit("Home missing settings gear")
 if "HomeShellView" not in home:
     raise SystemExit("HomeView missing HomeShellView")
 week = read("Features/Home/WeekPlannerView.swift")

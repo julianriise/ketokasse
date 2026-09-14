@@ -13,7 +13,7 @@ enum OnboardingStep: Int, Hashable, CaseIterable {
     }
 }
 
-enum OnboardingGoal: String, CaseIterable, Identifiable, Hashable {
+enum OnboardingGoal: String, CaseIterable, Identifiable, Hashable, Codable {
     case loseWeight
     case getStronger
     case everydayEnergy
@@ -29,7 +29,7 @@ enum OnboardingGoal: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-enum AllergyCategory: String, CaseIterable, Identifiable, Hashable {
+enum AllergyCategory: String, CaseIterable, Identifiable, Hashable, Codable {
     case nuts
     case citrus
     case gluten
@@ -55,12 +55,12 @@ enum AllergyCategory: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-enum AllergyAnswer: Equatable, Hashable {
+enum AllergyAnswer: Equatable, Hashable, Codable {
     case noAllergies
     case listed(Set<AllergyCategory>)
 }
 
-enum HousingKind: String, CaseIterable, Identifiable, Hashable {
+enum HousingKind: String, CaseIterable, Identifiable, Hashable, Codable {
     case apartment
     case duplex
     case house
@@ -78,7 +78,7 @@ enum HousingKind: String, CaseIterable, Identifiable, Hashable {
     var needsFloor: Bool { self != .house }
 }
 
-enum FamilyRole: String, CaseIterable, Identifiable, Hashable {
+enum FamilyRole: String, CaseIterable, Identifiable, Hashable, Codable {
     case man
     case woman
     case child
@@ -96,13 +96,13 @@ enum FamilyRole: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-struct FamilyMember: Identifiable, Equatable, Hashable {
+struct FamilyMember: Identifiable, Equatable, Hashable, Codable {
     var id = UUID()
     var name: String
     var role: FamilyRole
 }
 
-enum MealPlan: String, CaseIterable, Identifiable, Hashable {
+enum MealPlan: String, CaseIterable, Identifiable, Hashable, Codable {
     case standard
     case farm
 
@@ -126,12 +126,28 @@ enum MealPlan: String, CaseIterable, Identifiable, Hashable {
 @MainActor
 @Observable
 final class OnboardingState {
-    var goal: OnboardingGoal?
-    var allergies: AllergyAnswer?
-    var housing: HousingKind?
-    var floor: Int?
-    var family: [FamilyMember] = []
-    var plan: MealPlan?
+    private static let defaultsKey = "kk.onboardingAnswers"
+
+    private let defaults: UserDefaults
+
+    var goal: OnboardingGoal? {
+        didSet { persist() }
+    }
+    var allergies: AllergyAnswer? {
+        didSet { persist() }
+    }
+    var housing: HousingKind? {
+        didSet { persist() }
+    }
+    var floor: Int? {
+        didSet { persist() }
+    }
+    var family: [FamilyMember] = [] {
+        didSet { persist() }
+    }
+    var plan: MealPlan? {
+        didSet { persist() }
+    }
 
     var primaryName: String {
         family.first?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -147,6 +163,18 @@ final class OnboardingState {
             false
         case nil:
             false
+        }
+    }
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let snapshot = Self.load(from: defaults) {
+            goal = snapshot.goal
+            allergies = snapshot.allergies
+            housing = snapshot.housing
+            floor = snapshot.floor
+            family = snapshot.family
+            plan = snapshot.plan
         }
     }
 
@@ -189,6 +217,16 @@ final class OnboardingState {
         family.removeAll { $0.id == member.id }
     }
 
+    func reset() {
+        goal = nil
+        allergies = nil
+        housing = nil
+        floor = nil
+        family = []
+        plan = nil
+        defaults.removeObject(forKey: Self.defaultsKey)
+    }
+
     func canContinue(from step: OnboardingStep) -> Bool {
         switch step {
         case .cooking:
@@ -214,5 +252,31 @@ final class OnboardingState {
         case .pricing:
             return plan != nil
         }
+    }
+
+    private func persist() {
+        let snapshot = Snapshot(
+            goal: goal,
+            allergies: allergies,
+            housing: housing,
+            floor: floor,
+            family: family,
+            plan: plan
+        )
+        defaults.set(try? JSONEncoder().encode(snapshot), forKey: Self.defaultsKey)
+    }
+
+    private static func load(from defaults: UserDefaults) -> Snapshot? {
+        guard let data = defaults.data(forKey: defaultsKey) else { return nil }
+        return try? JSONDecoder().decode(Snapshot.self, from: data)
+    }
+
+    private struct Snapshot: Codable, Equatable {
+        var goal: OnboardingGoal?
+        var allergies: AllergyAnswer?
+        var housing: HousingKind?
+        var floor: Int?
+        var family: [FamilyMember]
+        var plan: MealPlan?
     }
 }
