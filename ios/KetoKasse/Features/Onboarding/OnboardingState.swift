@@ -213,25 +213,25 @@ final class OnboardingState {
     func canContinue(from step: OnboardingStep) -> Bool {
         switch step {
         case .cooking:
-            true
+            return true
         case .goal:
-            goal != nil
+            return goal != nil
         case .allergies:
             switch allergies {
             case .noAllergies:
-                true
+                return true
             case .listed(let set):
-                !set.isEmpty
+                return !set.isEmpty
             case nil:
-                false
+                return false
             }
         case .address:
             guard let housing else { return false }
             return !housing.needsFloor || floor != nil
         case .household:
-            !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && personality != nil
+            return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && personality != nil
         case .pricing:
-            plan != nil
+            return plan != nil
         }
     }
 }
