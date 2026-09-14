@@ -1,0 +1,13 @@
+import SwiftUI
+
+enum KKMotion {
+    static let bobY: CGFloat = -6
+    static let bob = Animation.easeInOut(duration: 1.8).repeatForever(autoreverses: true)
+    static let pillEdge: CGFloat = 4
+    static let pillRadius: CGFloat = 16
+    static let pillMinHeight: CGFloat = 50
+    static let mascotSize: CGFloat = 240
+    static let pressScale: CGFloat = 0.98
+    static let hopLift: CGFloat = -18
+    static let skyCircle: CGFloat = 280
+}

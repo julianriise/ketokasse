@@ -1,0 +1,6 @@
+*.xccheckout
+*.xcscmblueprint
+*.xcuserstate
+DerivedData/
+sweetpad-shots/
+xcuserdata/
