@@ -17,7 +17,7 @@ struct CookingFunView: View {
     var body: some View {
         OnboardingChrome(
             title: "Matlaging skal være gøy",
-            support: "Maskoten følger deg gjennom middagen. Hakk, rør og stek.",
+            support: "Hakk, rør og stek.",
             ctaTitle: "FORTSETT",
             action: onContinue
         ) {
@@ -31,19 +31,6 @@ struct CookingFunView: View {
                 }
             }
             .padding(.top, 8)
-
-            Text("Dette gjør matlaging gøy.")
-                .font(KKFont.body)
-                .foregroundStyle(KKColor.ink)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, 4)
-
-            Button("Neste steg", action: advanceMoment)
-                .font(KKFont.cta)
-                .tracking(KKFont.ctaTracking)
-                .foregroundStyle(KKColor.forest)
-                .frame(maxWidth: .infinity)
-                .padding(.top, 4)
         }
         .sensoryFeedback(.impact(weight: .light), trigger: hopToken)
         .onAppear { startBob() }
@@ -100,10 +87,6 @@ struct CookingFunView: View {
     private func selectMoment(_ moment: CookingMoment) {
         guard let index = moments.firstIndex(where: { $0.id == moment.id }) else { return }
         setMoment(index)
-    }
-
-    private func advanceMoment() {
-        setMoment((momentIndex + 1) % moments.count)
     }
 
     private func setMoment(_ index: Int) {

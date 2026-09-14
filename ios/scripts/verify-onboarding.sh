@@ -9,10 +9,10 @@ pass() { echo "ok  $*" ; }
 test -f "$APP/Features/Onboarding/OnboardingState.swift" || fail "missing OnboardingState.swift"
 test -f "$APP/Features/Onboarding/OnboardingFlow.swift" || fail "missing OnboardingFlow.swift"
 test -f "$APP/Features/Onboarding/CookingFunView.swift" || fail "missing CookingFunView.swift"
-test -f "$APP/Features/Onboarding/MealPlanWeekView.swift" || fail "missing MealPlanWeekView.swift"
 test -f "$APP/Features/Onboarding/AskViews.swift" || fail "missing AskViews.swift"
 test -f "$APP/Features/Onboarding/PricingView.swift" || fail "missing PricingView.swift"
 test -f "$APP/Features/Home/HomePlaceholderView.swift" || fail "missing HomePlaceholderView.swift"
+! test -e "$APP/Features/Onboarding/MealPlanWeekView.swift" || fail "MealPlanWeekView.swift must be gone"
 pass "files exist"
 
 STEPS="$(python3 - "$APP/Features/Onboarding/OnboardingState.swift" <<'PY'
@@ -25,7 +25,7 @@ cases = re.findall(r"case (\w+)", block.group(0))
 print(" ".join(cases))
 PY
 )"
-[ "$STEPS" = "cooking mealPlan name goal deliveryDay pricing" ] || fail "step order is '$STEPS'"
+[ "$STEPS" = "cooking goal allergies address household pricing" ] || fail "step order is '$STEPS'"
 pass "step order $STEPS"
 
 python3 - "$APP" <<'PY' || fail "copy or wiring check"
@@ -50,6 +50,19 @@ if "WelcomeView(onContinue:" not in flow:
     raise SystemExit("OnboardingFlow does not start at Welcome")
 if "path.append" not in flow:
     raise SystemExit("OnboardingFlow does not push steps")
+for dead in ["MealPlanWeekView", "NameAskView", "DeliveryDayAskView", ".mealPlan", ".deliveryDay", ".name"]:
+    if dead in flow:
+        raise SystemExit(f"OnboardingFlow still references {dead!r}")
+for live in [
+    "CookingFunView",
+    "GoalAskView",
+    "AllergiesAskView",
+    "AddressAskView",
+    "HouseholdAskView",
+    "PricingView",
+]:
+    if live not in flow:
+        raise SystemExit(f"OnboardingFlow missing {live}")
 
 content = read("ContentView.swift")
 if '@AppStorage("onboardingComplete")' not in content:
@@ -58,75 +71,104 @@ if "HomePlaceholderView" not in content:
     raise SystemExit("ContentView missing home gate")
 if "OnboardingFlow" not in content:
     raise SystemExit("ContentView missing OnboardingFlow")
+if "restartOnboarding" not in content:
+    raise SystemExit("ContentView missing restartOnboarding")
+if "answers = OnboardingState()" not in content:
+    raise SystemExit("ContentView does not recreate OnboardingState on restart")
+if "onboardingComplete = false" not in content:
+    raise SystemExit("ContentView does not clear onboardingComplete on restart")
 
 cooking = read("Features/Onboarding/CookingFunView.swift")
 for needle in [
     "Matlaging skal være gøy",
+    "Hakk, rør og stek.",
     "Hakk grønnsakene",
     "Rør sausen",
     "Stek kjøttet",
-    "Dette gjør matlaging gøy.",
     "carrot.fill",
     "fork.knife",
     "flame.fill",
 ]:
     if needle not in cooking:
         raise SystemExit(f"CookingFunView missing {needle!r}")
-
-meals = read("Features/Onboarding/MealPlanWeekView.swift")
-for needle in [
-    "Fem middager på sju dager",
-    "frossent kjøtt",
-    "Laks og brokkoli",
-    "Kylling i ovn",
-    "Biff og asparges",
-    "Torsk med smør",
-    "Egg og bacon",
-    "Fri",
-    "swapMeals",
-]:
-    if needle not in meals:
-        raise SystemExit(f"MealPlanWeekView missing {needle!r}")
+for fluff in ["Dette gjør matlaging gøy.", "Neste steg", "Maskoten følger deg"]:
+    if fluff in cooking:
+        raise SystemExit(f"CookingFunView still has fluff {fluff!r}")
 
 ask = read("Features/Onboarding/AskViews.swift")
 for needle in [
-    "Hva skal vi kalle deg?",
+    "Hva er viktigst?",
+    "Allergier",
+    "Ingen",
+    "Hvor bor du?",
+    "Etasje",
+    "Hvem bor her?",
     "Ola",
-    "Hva er viktigst for deg?",
-    "Når vil du ha kassen?",
-    "ettermiddagen",
+    "Legg til familie",
+    "selectNoAllergies",
+    "toggleAllergy",
 ]:
     if needle not in ask:
         raise SystemExit(f"AskViews missing {needle!r}")
+for dead in ["Hva skal vi kalle deg?", "Hva er viktigst for deg?", "Når vil du ha kassen?", "ettermiddagen"]:
+    if dead in ask:
+        raise SystemExit(f"AskViews still has {dead!r}")
 
 state = read("Features/Onboarding/OnboardingState.swift")
 for needle in [
     "Gå ned i vekt",
     "Bli sterkere",
     "Overskudd i hverdagen",
+    "Nøtter",
+    "Sitrusfrukt",
+    "Gluten",
+    "Egg",
+    "Meieri",
+    "Skalldyr",
+    "Soya",
+    "Sesam",
+    "Leilighet",
+    "Tomannsbolig",
+    "Rekkehus/enebolig",
+    "Voksen",
+    "Barn",
+    "Baby",
     "Standard kvalitet",
     "Gårdskvalitet",
     "kr 1 490,–",
     "kr 2 290,–",
-    "Man",
-    "Søn",
+    "case none",
+    "needsFloor",
 ]:
     if needle not in state:
         raise SystemExit(f"OnboardingState missing {needle!r}")
+for dead in ["DeliveryWeekday", "case mealPlan", "case deliveryDay", "case name"]:
+    if dead in state:
+        raise SystemExit(f"OnboardingState still has {dead!r}")
+
+can_continue = re.search(r"func canContinue.*", state, re.S)
+if not can_continue:
+    raise SystemExit("canContinue missing")
+for step in ["cooking", "goal", "allergies", "address", "household", "pricing"]:
+    if f"case .{step}" not in can_continue.group(0):
+        raise SystemExit(f"canContinue missing .{step}")
 
 pricing = read("Features/Onboarding/PricingView.swift")
-for needle in ["5 måltider for 2 personer", "FERDIG", "Samme kutt", "ikke mer i lomma"]:
+for needle in ["5 måltider for 2", "FERDIG", "Samme kutt", "ikke mer i lomma"]:
     if needle not in pricing:
         raise SystemExit(f"PricingView missing {needle!r}")
 
 home = read("Features/Home/HomePlaceholderView.swift")
 if "Uka di er klar." not in home:
     raise SystemExit("HomePlaceholderView missing copy")
+if 'title: "Start på nytt"' not in home:
+    raise SystemExit("HomePlaceholderView missing restart button")
+if "onRestart" not in home:
+    raise SystemExit("HomePlaceholderView missing onRestart")
 
 early = [
     "Features/Welcome/WelcomeView.swift",
     "Features/Onboarding/CookingFunView.swift",
-    "Features/Onboarding/MealPlanWeekView.swift",
     "Features/Onboarding/AskViews.swift",
     "Features/Home/HomePlaceholderView.swift",
 ]
@@ -140,6 +182,8 @@ for path in root_swift:
     text = path.read_text()
     if "StoreKit" in text or "import StoreKit" in text:
         raise SystemExit(f"StoreKit in {path}")
+    if "MealPlanWeekView" in text:
+        raise SystemExit(f"MealPlanWeekView still referenced in {path}")
 PY
 pass "copy, wiring, prices last, no StoreKit"
 

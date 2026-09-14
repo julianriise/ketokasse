@@ -24,14 +24,14 @@ struct OnboardingFlow: View {
         switch step {
         case .cooking:
             CookingFunView(onContinue: { goNext(from: .cooking) })
-        case .mealPlan:
-            MealPlanWeekView(onContinue: { goNext(from: .mealPlan) })
-        case .name:
-            NameAskView(answers: answers, onContinue: { goNext(from: .name) })
         case .goal:
             GoalAskView(answers: answers, onContinue: { goNext(from: .goal) })
-        case .deliveryDay:
-            DeliveryDayAskView(answers: answers, onContinue: { goNext(from: .deliveryDay) })
+        case .allergies:
+            AllergiesAskView(answers: answers, onContinue: { goNext(from: .allergies) })
+        case .address:
+            AddressAskView(answers: answers, onContinue: { goNext(from: .address) })
+        case .household:
+            HouseholdAskView(answers: answers, onContinue: { goNext(from: .household) })
         case .pricing:
             PricingView(answers: answers, onFinished: { goNext(from: .pricing) })
         }

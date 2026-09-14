@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomePlaceholderView: View {
     var name: String
+    var onRestart: () -> Void = {}
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isBobbing = false
@@ -30,6 +31,8 @@ struct HomePlaceholderView: View {
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
             Spacer(minLength: 24)
+            GetStartedButton(title: "Start på nytt", action: onRestart)
+                .padding(.bottom, 24)
         }
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

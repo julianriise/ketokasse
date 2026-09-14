@@ -6,12 +6,17 @@ struct ContentView: View {
 
     var body: some View {
         if onboardingComplete {
-            HomePlaceholderView(name: answers.name)
+            HomePlaceholderView(name: answers.name, onRestart: restartOnboarding)
         } else {
             OnboardingFlow(answers: answers) {
                 onboardingComplete = true
             }
         }
+    }
+
+    private func restartOnboarding() {
+        answers = OnboardingState()
+        onboardingComplete = false
     }
 }
 
