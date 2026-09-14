@@ -1,22 +1,31 @@
 import SwiftUI
 
 struct HomeShellView: View {
+    private enum Page: Hashable {
+        case today
+        case week
+    }
+
     var name: String
     var onRestart: () -> Void
 
     @State private var cookingDish: Dish?
+    @State private var page: Page = .today
 
     var body: some View {
-        TabView {
+        TabView(selection: $page) {
             HomeView(name: name, onRestart: onRestart) { dish in
                 cookingDish = dish
             }
+            .tag(Page.today)
             WeekPlannerView()
+                .tag(Page.week)
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         .tint(KKColor.forest)
         .background(KKColor.white.ignoresSafeArea())
+        .sensoryFeedback(.selection, trigger: page)
         .sheet(item: $cookingDish) { dish in
             CookingStubView(dish: dish)
         }
@@ -29,6 +38,7 @@ struct HomeView: View {
     var onStartDinner: (Dish) -> Void
 
     @Environment(WeekStore.self) private var store
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var greeting: String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -50,6 +60,8 @@ struct HomeView: View {
                 .font(KKFont.headline)
                 .tracking(KKFont.headlineTracking)
                 .foregroundStyle(dish == nil ? KKColor.muted : KKColor.ink)
+                .contentTransition(reduceMotion ? .identity : .opacity)
+                .animation(KKMotion.snappy(reduceMotion), value: dish?.title)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 8)

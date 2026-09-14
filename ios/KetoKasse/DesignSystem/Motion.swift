@@ -8,6 +8,15 @@ enum KKMotion {
     static let pillMinHeight: CGFloat = 50
     static let mascotSize: CGFloat = 240
     static let pressScale: CGFloat = 0.98
+    static let dragLiftScale: CGFloat = 1.04
     static let hopLift: CGFloat = -18
     static let skyCircle: CGFloat = 280
+
+    static func snappy(_ reduceMotion: Bool) -> Animation? {
+        reduceMotion ? nil : .snappy(duration: 0.28, extraBounce: 0.12)
+    }
+
+    static func press(_ reduceMotion: Bool) -> Animation? {
+        reduceMotion ? nil : .easeOut(duration: 0.08)
+    }
 }
