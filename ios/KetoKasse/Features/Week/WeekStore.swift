@@ -46,12 +46,10 @@ final class WeekStore {
         persist()
     }
 
-    func moveDish(from: Int, to: Int) {
-        guard from != to,
-              plan.slots.indices.contains(from),
-              plan.slots.indices.contains(to) else { return }
+    func moveSlots(from offsets: IndexSet, to destination: Int) {
         var next = plan
-        next.slots.swapAt(from, to)
+        next.slots.move(fromOffsets: offsets, toOffset: destination)
+        guard next != plan else { return }
         plan = next
         persist()
     }
