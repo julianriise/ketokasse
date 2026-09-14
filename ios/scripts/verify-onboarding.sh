@@ -137,11 +137,18 @@ for needle in [
     "Gårdskvalitet",
     "kr 1 490,–",
     "kr 2 290,–",
-    "case none",
+    "case noAllergies",
     "needsFloor",
 ]:
     if needle not in state:
         raise SystemExit(f"OnboardingState missing {needle!r}")
+answer = re.search(r"enum AllergyAnswer.*?\n\}", state, re.S)
+if not answer:
+    raise SystemExit("AllergyAnswer missing")
+if "case none" in answer.group(0):
+    raise SystemExit("AllergyAnswer case none clashes with Optional.none")
+if "case noAllergies" not in answer.group(0):
+    raise SystemExit("AllergyAnswer missing case noAllergies")
 for dead in ["DeliveryWeekday", "case mealPlan", "case deliveryDay", "case name"]:
     if dead in state:
         raise SystemExit(f"OnboardingState still has {dead!r}")

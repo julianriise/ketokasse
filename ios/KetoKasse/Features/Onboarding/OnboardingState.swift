@@ -56,7 +56,7 @@ enum AllergyCategory: String, CaseIterable, Identifiable, Hashable {
 }
 
 enum AllergyAnswer: Equatable, Hashable {
-    case none
+    case noAllergies
     case listed(Set<AllergyCategory>)
 }
 
@@ -163,8 +163,14 @@ final class OnboardingState {
     static let floors = Array(1...8)
 
     var noAllergiesSelected: Bool {
-        if case .none = allergies { return true }
-        return false
+        switch allergies {
+        case .noAllergies:
+            true
+        case .listed:
+            false
+        case nil:
+            false
+        }
     }
 
     func allergySelected(_ category: AllergyCategory) -> Bool {
@@ -175,12 +181,14 @@ final class OnboardingState {
     }
 
     func selectNoAllergies() {
-        allergies = .none
+        allergies = .noAllergies
     }
 
     func toggleAllergy(_ category: AllergyCategory) {
         switch allergies {
-        case .none, nil:
+        case nil:
+            allergies = .listed([category])
+        case .noAllergies:
             allergies = .listed([category])
         case .listed(let set):
             var next = set
@@ -205,25 +213,25 @@ final class OnboardingState {
     func canContinue(from step: OnboardingStep) -> Bool {
         switch step {
         case .cooking:
-            true
+            return true
         case .goal:
-            goal != nil
+            return goal != nil
         case .allergies:
             switch allergies {
-            case .none:
-                true
+            case .noAllergies:
+                return true
             case .listed(let set):
-                !set.isEmpty
+                return !set.isEmpty
             case nil:
-                false
+                return false
             }
         case .address:
             guard let housing else { return false }
             return !housing.needsFloor || floor != nil
         case .household:
-            !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && personality != nil
+            return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && personality != nil
         case .pricing:
-            plan != nil
+            return plan != nil
         }
     }
 }
