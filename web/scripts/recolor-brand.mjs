@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -47,4 +48,13 @@ for (const rel of files) {
 	const out = src.replace(pattern, (token) => lookup.get(token.toUpperCase()) ?? token)
 	writeFileSync(path, out)
 	console.log(rel, src === out ? 'unchanged' : 'updated')
+}
+
+const render = spawnSync(
+	'python3',
+	[join(root, 'ios/scripts/render-appicon.py')],
+	{ stdio: 'inherit' },
+)
+if (render.error || render.status !== 0) {
+	console.log('ios AppIcon not rebuilt; run python3 ios/scripts/render-appicon.py')
 }
