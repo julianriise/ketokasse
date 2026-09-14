@@ -8,7 +8,6 @@ enum KKMotion {
     static let pillMinHeight: CGFloat = 50
     static let mascotSize: CGFloat = 240
     static let pressScale: CGFloat = 0.98
-    static let dragLiftScale: CGFloat = 1.04
     static let hopLift: CGFloat = -18
     static let skyCircle: CGFloat = 280
 

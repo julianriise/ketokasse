@@ -73,10 +73,26 @@ if "Start på nytt" not in home_text:
     raise SystemExit("HomeView missing Start på nytt")
 if "HomeShellView" not in content:
     raise SystemExit("ContentView missing HomeShellView")
-if "draggableIfPresent" not in week_text:
-    raise SystemExit("WeekPlannerView missing drag")
-if "dropDestination" not in week_text:
-    raise SystemExit("WeekPlannerView missing drop")
+if "List" not in week_text:
+    raise SystemExit("WeekPlannerView missing List")
+if ".onMove" not in week_text:
+    raise SystemExit("WeekPlannerView missing onMove")
+if "editMode" not in week_text:
+    raise SystemExit("WeekPlannerView missing editMode")
+if "draggable" in week_text:
+    raise SystemExit("WeekPlannerView still has draggable")
+if "dropDestination" in week_text:
+    raise SystemExit("WeekPlannerView still has dropDestination")
+if "draggableIfPresent" in week_text:
+    raise SystemExit("WeekPlannerView still has draggableIfPresent")
+if "moveSlots" not in store_text:
+    raise SystemExit("WeekStore missing moveSlots")
+if "fromOffsets" not in store_text:
+    raise SystemExit("WeekStore missing Array.move")
+if "swapAt" in store_text:
+    raise SystemExit("WeekStore still has swapAt")
+if "moveDish" in store_text:
+    raise SystemExit("WeekStore still has moveDish")
 
 by_title = {dish.title: dish for dish in pool}
 
