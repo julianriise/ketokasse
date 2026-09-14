@@ -1,152 +1,107 @@
 import { chromium } from 'playwright'
 import { mkdir } from 'node:fs/promises'
 
-const out = '/opt/cursor/artifacts'
+const out = '/tmp/ketokasse-verify'
 await mkdir(out, { recursive: true })
 
 const browser = await chromium.launch({ headless: true })
 const results = []
 
 function check(name, ok, detail = '') {
-	results.push({ name, ok, detail })
-	console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? ` — ${detail}` : ''}`)
+  results.push({ name, ok, detail })
+  console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? ` — ${detail}` : ''}`)
 }
 
 async function assertNoHorizontalOverflow(page, width) {
-	await page.setViewportSize({ width, height: 844 })
-	await page.waitForTimeout(200)
-	const metrics = await page.evaluate(() => {
-		const root = document.documentElement
-		const body = document.body
-		return {
-			rootScroll: root.scrollWidth,
-			rootClient: root.clientWidth,
-			bodyScroll: body.scrollWidth,
-			bodyClient: body.clientWidth,
-		}
-	})
-	const ok =
-		metrics.rootScroll <= metrics.rootClient + 1 &&
-		metrics.bodyScroll <= metrics.bodyClient + 1
-	check(`no overflow ${width}`, ok, JSON.stringify(metrics))
+  await page.setViewportSize({ width, height: 844 })
+  await page.locator('h1').waitFor()
+  const metrics = await page.evaluate(() => {
+    const root = document.documentElement
+    const body = document.body
+    return {
+      rootScroll: root.scrollWidth,
+      rootClient: root.clientWidth,
+      bodyScroll: body.scrollWidth,
+      bodyClient: body.clientWidth,
+    }
+  })
+  const ok =
+    metrics.rootScroll <= metrics.rootClient + 1 &&
+    metrics.bodyScroll <= metrics.bodyClient + 1
+  check(`no overflow ${width}`, ok, JSON.stringify(metrics))
 }
 
 const context = await browser.newContext({
-	viewport: { width: 390, height: 844 },
-	locale: 'nb-NO',
-	recordVideo: { dir: out, size: { width: 390, height: 844 } },
+  viewport: { width: 390, height: 844 },
+  locale: 'nb-NO',
 })
 const page = await context.newPage()
 
 await page.goto('http://127.0.0.1:3456/', { waitUntil: 'networkidle' })
-await page.waitForTimeout(400)
-await page.screenshot({ path: `${out}/ketokasse_hero.png`, fullPage: false })
+await page.locator('h1').waitFor()
+await page.screenshot({ path: `${out}/hero.png`, fullPage: false })
 
 const lang = await page.locator('html').getAttribute('lang')
 check('lang=nb', lang === 'nb', `lang=${lang}`)
 
-const brand = page.locator('h1.kk-brand')
-check('brand visible', await brand.isVisible())
-check('brand text', (await brand.innerText()).trim() === 'KetoKasse')
-
-const img = page.locator('img.kk-photo-img')
-check('hero image', await img.isVisible())
-
-const headings = await page.locator('h2.kk-heading').allInnerTexts()
+const h1 = page.locator('h1')
+check('h1 visible', await h1.isVisible())
 check(
-	'section order',
-	headings.join('|') ===
-		[
-			'Hva du får',
-			'Hvor skal kassen?',
-			'Allergener',
-			'Meld interesse',
-			'Neste levering',
-			'Oppskriften er digital',
-		].join('|'),
-	headings.join(' | '),
+  'h1 is hero heading',
+  (await h1.innerText()).trim() === 'Den gøyeste måten å spise keto på',
+  (await h1.innerText()).trim(),
 )
 
+check('no form', (await page.locator('form').count()) === 0)
 const bodyText = await page.locator('body').innerText()
-check('price 1490', bodyText.includes('1490 kr'))
-check('deposit 200', bodyText.includes('+200 kr pant'))
-check('monday delivery', bodyText.includes('Levering mandag'))
-check('limited space', bodyText.includes('Begrenset plass'))
-check('no live payment copy', !/stripe|vipps|betal med/i.test(bodyText))
+check('no Meld interesse', !bodyText.includes('Meld interesse'))
 check(
-	'no capacity number',
-	!/5 kunder|én kunde per dag|sju leveringsdager/i.test(bodyText),
-)
-check('weekly allergen placeholder', bodyText.includes('Oppdateres hver uke'))
-check(
-	'14 allergen helper',
-	bodyText.includes('De 14 allergenene') ||
-		(await page.locator('.kk-details').count()) > 0,
-)
-await page.locator('.kk-details summary').click()
-check(
-	'14 allergen list',
-	await page.getByText('Glutenholdig korn', { exact: true }).isVisible(),
-)
-check('packaging note', bodyText.includes('originale pakninger'))
-
-const allergenBeforeSubmit = await page.evaluate(() => {
-	const allergen = document.getElementById('allergener-heading')
-	const submit = document.querySelector('.kk-pay')
-	if (!allergen || !submit) {
-		return false
-	}
-	return Boolean(
-		allergen.compareDocumentPosition(submit) & Node.DOCUMENT_POSITION_FOLLOWING,
-	)
-})
-check('allergen before submit in DOM', allergenBeforeSubmit)
-
-await page.locator('.kk-pay').click()
-await page.waitForTimeout(200)
-check(
-	'validation Norwegian',
-	await page.getByText('Sjekk opplysningene').isVisible(),
-)
-check(
-	'allergen required',
-	await page.locator('#allergen-error').isVisible(),
-)
-await page.screenshot({
-	path: `${out}/ketokasse_validation.png`,
-	fullPage: false,
-})
-
-await page.fill('#field-line1', 'Testveien 1')
-await page.fill('#field-postalCode', '0150')
-await page.fill('#field-city', 'Oslo')
-await page.fill('#field-instructions', 'Ved døren')
-await page.locator('.kk-pay').click()
-await page.waitForTimeout(200)
-check(
-	'blocks submit without allergen ack',
-	await page.locator('#allergen-error').isVisible(),
+  'no address fields',
+  (await page.locator('#field-line1, #field-postalCode, #field-city').count()) ===
+    0,
 )
 
-await page.locator('#field-allergenAck').check()
-await page.locator('.kk-pay').click()
-await page.waitForSelector('.kk-success', { timeout: 5000 })
-check('waitlist success', await page.locator('.kk-success').isVisible())
+const headerCta = page.locator('header a.kk-cta-pill')
+check('header Last ned is a', (await headerCta.count()) === 1)
 check(
-	'waitlist disclosure',
-	await page.getByText('Ingen betaling').first().isVisible(),
+  'header Last ned has no href',
+  (await headerCta.getAttribute('href')) === null,
+  `href=${await headerCta.getAttribute('href')}`,
 )
-await page.screenshot({ path: `${out}/ketokasse_success.png`, fullPage: true })
+check(
+  'header Last ned aria-disabled',
+  (await headerCta.getAttribute('aria-disabled')) === 'true',
+  `aria-disabled=${await headerCta.getAttribute('aria-disabled')}`,
+)
+
+const badges = page.locator('a.kk-store')
+const badgeCount = await badges.count()
+check('App Store badges present', badgeCount >= 1, `count=${badgeCount}`)
+for (let i = 0; i < badgeCount; i += 1) {
+  const href = await badges.nth(i).getAttribute('href')
+  check(`App Store badge ${i} has no href`, href === null, `href=${href}`)
+}
+
+const headings = await page.locator('h2').allInnerTexts()
+const headingLine = headings.map((text) => text.trim()).join('|')
+check(
+  'section h2 texts',
+  headingLine ===
+    'fem middager|mandagslevering|oppskrift i appen|keto hvor som helst',
+  headingLine,
+)
+
+const family = await h1.evaluate((el) => getComputedStyle(el).fontFamily)
+check('Nunito in h1 font-family', /nunito/i.test(family), family)
 
 await assertNoHorizontalOverflow(page, 390)
-await page.screenshot({ path: `${out}/ketokasse_390.png`, fullPage: true })
-await assertNoHorizontalOverflow(page, 430)
-await page.screenshot({ path: `${out}/ketokasse_430.png`, fullPage: true })
+await page.screenshot({ path: `${out}/390.png`, fullPage: true })
+await assertNoHorizontalOverflow(page, 1280)
+await page.screenshot({ path: `${out}/1280.png`, fullPage: true })
 
-const videoPath = await page.video()?.path()
 await context.close()
 await browser.close()
 
 const failed = results.filter((r) => !r.ok)
-console.log(JSON.stringify({ failed: failed.length, results, videoPath }, null, 2))
+console.log(JSON.stringify({ failed: failed.length, results }, null, 2))
 process.exit(failed.length ? 1 : 0)

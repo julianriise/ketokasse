@@ -1,25 +1,34 @@
 import type { Metadata, Viewport } from "next";
+import { Nunito } from "next/font/google";
+import type { ReactNode } from "react";
 
-import { copyNo } from "@/features/signup/copy.no";
+import { landingNo } from "@/features/landing/landing";
 
 import "./globals.css";
 
+const nunito = Nunito({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-nunito",
+});
+
 export const metadata: Metadata = {
-  title: copyNo.metadata.title,
-  description: copyNo.metadata.description,
+  title: landingNo.metadata.title,
+  description: landingNo.metadata.description,
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#e4ebe0",
+  themeColor: "#ffffff",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="nb" className="h-full">
-      <body className="min-h-full">{children}</body>
+    <html lang="nb" className={`${nunito.variable} ${nunito.className}`}>
+      <body>{children}</body>
     </html>
   );
 }

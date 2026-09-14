@@ -1,2 +1,2 @@
 # ketokasse
-Norsk ketokasse landingsside — matkasse fra gården, ukentlig levering
+Norsk ketokasse. Last ned iOS-appen.
