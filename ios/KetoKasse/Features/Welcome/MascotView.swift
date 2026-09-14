@@ -84,7 +84,7 @@ private struct SproutLeaf: View {
     var body: some View {
         ZStack {
             SproutOutline()
-                .fill(KKColor.lime)
+                .fill(KKColor.forest)
             SproutVein()
                 .stroke(KKColor.forest, style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
         }
@@ -128,7 +128,7 @@ private struct CrateBody: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 12, style: .circular)
-                .fill(KKColor.lime)
+                .fill(KKColor.forest)
                 .frame(width: 58, height: 48)
                 .offset(x: 11, y: 22)
             RoundedRectangle(cornerRadius: 10, style: .circular)
@@ -210,5 +210,5 @@ private struct Smile: Shape {
 
 #Preview {
     MascotView(hopToken: 0, isBobbing: true)
-        .background(KKColor.mint)
+        .background(KKColor.white)
 }

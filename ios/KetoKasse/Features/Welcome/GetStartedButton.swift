@@ -12,7 +12,7 @@ struct GetStartedButton: View {
                 .font(KKFont.cta)
                 .tracking(KKFont.ctaTracking)
                 .textCase(.uppercase)
-                .foregroundStyle(KKColor.white)
+                .foregroundStyle(KKColor.lime)
                 .frame(maxWidth: .infinity, minHeight: KKMotion.pillMinHeight)
         }
         .buttonStyle(DuoPillButtonStyle(reduceMotion: reduceMotion))
@@ -26,7 +26,7 @@ private struct DuoPillButtonStyle: ButtonStyle {
         let pressed = configuration.isPressed && !reduceMotion
         let edge = pressed ? 0 : KKMotion.pillEdge
         configuration.label
-            .background(KKColor.lime, in: .rect(cornerRadius: KKMotion.pillRadius))
+            .background(KKColor.forest, in: .rect(cornerRadius: KKMotion.pillRadius))
             .padding(.bottom, edge)
             .background(KKColor.limeEdge, in: .rect(cornerRadius: KKMotion.pillRadius))
             .offset(y: pressed ? KKMotion.pillEdge : 0)
@@ -38,5 +38,5 @@ private struct DuoPillButtonStyle: ButtonStyle {
 #Preview {
     GetStartedButton(title: "KOM I GANG", action: {})
         .padding(24)
-        .background(KKColor.mint)
+        .background(KKColor.white)
 }

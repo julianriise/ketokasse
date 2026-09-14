@@ -30,7 +30,7 @@ struct WelcomeView: View {
             Text(copy.wordmark)
                 .font(KKFont.wordmark)
                 .tracking(KKFont.wordmarkTracking)
-                .foregroundStyle(KKColor.lime)
+                .foregroundStyle(KKColor.forest)
                 .padding(.top, 24)
             Text(copy.headline)
                 .font(KKFont.headline)
@@ -54,7 +54,7 @@ struct WelcomeView: View {
         }
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(KKColor.mint.ignoresSafeArea())
+        .background(KKColor.white.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: hopToken)
         .onAppear { startBob() }
     }
