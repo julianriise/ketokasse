@@ -81,6 +81,10 @@ if "answers = OnboardingState()" not in content:
     raise SystemExit("ContentView does not recreate OnboardingState on restart")
 if "onboardingComplete = false" not in content:
     raise SystemExit("ContentView does not clear onboardingComplete on restart")
+if "answers.primaryName" not in content:
+    raise SystemExit("ContentView does not greet with answers.primaryName")
+if "answers.name" in content:
+    raise SystemExit("ContentView still reads answers.name")
 
 cooking = read("Features/Onboarding/CookingFunView.swift")
 for needle in [
@@ -107,14 +111,28 @@ for needle in [
     "Hvor bor du?",
     "Etasje",
     "Hvem bor her?",
-    "Ola",
-    "Legg til familie",
+    "Navn",
+    "Legg til",
+    "Fjern",
+    "FamilyRole.allCases",
+    "FamilyRoleAvatar",
     "selectNoAllergies",
     "toggleAllergy",
 ]:
     if needle not in ask:
         raise SystemExit(f"AskViews missing {needle!r}")
-for dead in ["Hva skal vi kalle deg?", "Hva er viktigst for deg?", "Når vil du ha kassen?", "ettermiddagen"]:
+for dead in [
+    "Hva skal vi kalle deg?",
+    "Hva er viktigst for deg?",
+    "Når vil du ha kassen?",
+    "ettermiddagen",
+    "Ola",
+    "Legg til familie",
+    "Personlighet",
+    "Personality",
+    "shippingbox",
+    "Voksen",
+]:
     if dead in ask:
         raise SystemExit(f"AskViews still has {dead!r}")
 
@@ -134,9 +152,11 @@ for needle in [
     "Leilighet",
     "Tomannsbolig",
     "Rekkehus/enebolig",
-    "Voksen",
+    "Mann",
+    "Dame",
     "Barn",
     "Baby",
+    "primaryName",
     "Standard kvalitet",
     "Gårdskvalitet",
     "kr 1 490,–",
@@ -153,9 +173,13 @@ if "case none" in answer.group(0):
     raise SystemExit("AllergyAnswer case none clashes with Optional.none")
 if "case noAllergies" not in answer.group(0):
     raise SystemExit("AllergyAnswer missing case noAllergies")
-for dead in ["DeliveryWeekday", "case mealPlan", "case deliveryDay", "case name"]:
+for dead in ["DeliveryWeekday", "case mealPlan", "case deliveryDay", "case name", "enum Personality", "var personality", "Voksen", "case adult"]:
     if dead in state:
         raise SystemExit(f"OnboardingState still has {dead!r}")
+if re.search(r"final class OnboardingState[^{]*\{[^}]*\bvar name\b", state, re.S):
+    raise SystemExit("OnboardingState still has a name field")
+if "addFamilyMember(name:" not in state:
+    raise SystemExit("addFamilyMember must take a name")
 
 can_continue = re.search(r"func canContinue.*", state, re.S)
 if not can_continue:
@@ -163,6 +187,13 @@ if not can_continue:
 for step in ["cooking", "goal", "allergies", "address", "household", "pricing"]:
     if f"case .{step}" not in can_continue.group(0):
         raise SystemExit(f"canContinue missing .{step}")
+household_gate = re.search(r"case \.household:\s*(.*?)case \.pricing", can_continue.group(0), re.S)
+if not household_gate:
+    raise SystemExit("canContinue household case missing")
+if "family" not in household_gate.group(1):
+    raise SystemExit("canContinue(.household) does not check family")
+if "personality" in household_gate.group(1):
+    raise SystemExit("canContinue(.household) still uses personality")
 
 pricing = read("Features/Onboarding/PricingView.swift")
 for needle in ["5 måltider for 2", "FERDIG", "Samme kutt", "ikke mer i lomma"]:
@@ -178,6 +209,8 @@ if "onRestart" not in home:
     raise SystemExit("HomeView missing onRestart")
 if "Start middag" not in home:
     raise SystemExit("HomeView missing dinner CTA")
+if "Hei," not in home:
+    raise SystemExit("HomeView missing named greeting")
 if "HomeShellView" not in home:
     raise SystemExit("HomeView missing HomeShellView")
 week = read("Features/Home/WeekPlannerView.swift")
