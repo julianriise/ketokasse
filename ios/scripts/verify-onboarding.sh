@@ -11,7 +11,9 @@ test -f "$APP/Features/Onboarding/OnboardingFlow.swift" || fail "missing Onboard
 test -f "$APP/Features/Onboarding/CookingFunView.swift" || fail "missing CookingFunView.swift"
 test -f "$APP/Features/Onboarding/AskViews.swift" || fail "missing AskViews.swift"
 test -f "$APP/Features/Onboarding/PricingView.swift" || fail "missing PricingView.swift"
-test -f "$APP/Features/Home/HomePlaceholderView.swift" || fail "missing HomePlaceholderView.swift"
+test -f "$APP/Features/Home/HomeView.swift" || fail "missing HomeView.swift"
+test -f "$APP/Features/Home/WeekPlannerView.swift" || fail "missing WeekPlannerView.swift"
+! test -e "$APP/Features/Home/HomePlaceholderView.swift" || fail "HomePlaceholderView.swift must be gone"
 ! test -e "$APP/Features/Onboarding/MealPlanWeekView.swift" || fail "MealPlanWeekView.swift must be gone"
 pass "files exist"
 
@@ -67,8 +69,10 @@ for live in [
 content = read("ContentView.swift")
 if '@AppStorage("onboardingComplete")' not in content:
     raise SystemExit("ContentView missing AppStorage onboardingComplete")
-if "HomePlaceholderView" not in content:
+if "HomeShellView" not in content:
     raise SystemExit("ContentView missing home gate")
+if "HomePlaceholderView" in content:
+    raise SystemExit("ContentView still references HomePlaceholderView")
 if "OnboardingFlow" not in content:
     raise SystemExit("ContentView missing OnboardingFlow")
 if "restartOnboarding" not in content:
@@ -165,19 +169,27 @@ for needle in ["5 måltider for 2", "FERDIG", "Samme kutt", "ikke mer i lomma"]:
     if needle not in pricing:
         raise SystemExit(f"PricingView missing {needle!r}")
 
-home = read("Features/Home/HomePlaceholderView.swift")
-if "Uka di er klar." not in home:
-    raise SystemExit("HomePlaceholderView missing copy")
-if 'title: "Start på nytt"' not in home:
-    raise SystemExit("HomePlaceholderView missing restart button")
+home = read("Features/Home/HomeView.swift")
+if "Uka di er klar." in home:
+    raise SystemExit("HomeView still has placeholder copy")
+if "Start på nytt" not in home:
+    raise SystemExit("HomeView missing restart button")
 if "onRestart" not in home:
-    raise SystemExit("HomePlaceholderView missing onRestart")
+    raise SystemExit("HomeView missing onRestart")
+if "Start middag" not in home:
+    raise SystemExit("HomeView missing dinner CTA")
+if "HomeShellView" not in home:
+    raise SystemExit("HomeView missing HomeShellView")
+week = read("Features/Home/WeekPlannerView.swift")
+if "Simuler ny uke" not in week:
+    raise SystemExit("WeekPlannerView missing Simuler ny uke")
 
 early = [
     "Features/Welcome/WelcomeView.swift",
     "Features/Onboarding/CookingFunView.swift",
     "Features/Onboarding/AskViews.swift",
-    "Features/Home/HomePlaceholderView.swift",
+    "Features/Home/HomeView.swift",
+    "Features/Home/WeekPlannerView.swift",
 ]
 for rel in early:
     text = read(rel)
