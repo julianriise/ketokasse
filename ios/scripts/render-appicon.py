@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild AppIcon.png from Logo.imageset/logo.svg on opaque KKColor.forest.
-
-Apple rejects App Store icons that contain an alpha channel.
-"""
+"""Apple rejects App Store icons that contain an alpha channel."""
 
 from __future__ import annotations
 
