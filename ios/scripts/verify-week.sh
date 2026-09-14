@@ -36,11 +36,25 @@ home_text = (root / "KetoKasse/Features/Home/HomeView.swift").read_text()
 week_text = (root / "KetoKasse/Features/Home/WeekPlannerView.swift").read_text()
 content = (root / "KetoKasse/ContentView.swift").read_text()
 
+EXPECTED_TITLES = [
+    "Squash-lasagne",
+    "Chilistekte tigerreker med brokkolimos",
+    "Cheeseburgerform",
+    "Koteletter med blomkålmos",
+    "Kyllingpizza med mozzarella og basilikum",
+    "Meksikansk form med kylling",
+    "Tigerreke-taco",
+    "Fiskegrateng keto",
+    "Kremet lakseform",
+    "Eggeform med bacon og ost",
+]
 pool = parse_pool(pool_text)
-if len(pool) != 50:
-    raise SystemExit(f"pool size {len(pool)}, expected 50")
+if len(pool) != 10:
+    raise SystemExit(f"pool size {len(pool)}, expected 10")
 titles = [dish.title for dish in pool]
-if len(set(titles)) != 50:
+if titles != EXPECTED_TITLES:
+    raise SystemExit(f"pool titles {titles}")
+if len(set(titles)) != 10:
     raise SystemExit("pool titles are not unique")
 pizza_title = parse_pizza_title(pool_text)
 if pizza_title != PIZZA_TITLE:
@@ -106,5 +120,5 @@ for seed in range(3, 41):
     if not proteins_are_valid(as_dishes(slots)):
         raise SystemExit(f"seed {seed} adjacent protein")
 
-print("ok  pool 50, pizza pinned, 5/2 slots, proteins, simulate changes")
+print("ok  pool 10, pizza pinned, 5/2 slots, proteins, simulate changes")
 PY
