@@ -7,7 +7,7 @@ struct PricingView: View {
     var body: some View {
         OnboardingChrome(
             title: "Velg kvalitet",
-            support: "Begge planene er 5 måltider for 2 personer. Samme kutt til Ketokasse uansett. Høyere pris betyr bedre råvarer, ikke mer i lomma vår.",
+            support: "5 måltider for 2. Samme kutt. Bedre råvarer, ikke mer i lomma.",
             ctaTitle: "FERDIG",
             ctaEnabled: answers.canContinue(from: .pricing),
             action: onFinished

@@ -2,10 +2,10 @@ import SwiftUI
 
 enum OnboardingStep: Int, Hashable, CaseIterable {
     case cooking = 1
-    case mealPlan
-    case name
     case goal
-    case deliveryDay
+    case allergies
+    case address
+    case household
     case pricing
 
     var next: OnboardingStep? {
@@ -29,22 +29,102 @@ enum OnboardingGoal: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-enum DeliveryWeekday: Int, CaseIterable, Identifiable, Hashable {
-    case monday = 1, tuesday, wednesday, thursday, friday, saturday, sunday
+enum AllergyCategory: String, CaseIterable, Identifiable, Hashable {
+    case nuts
+    case citrus
+    case gluten
+    case egg
+    case dairy
+    case shellfish
+    case soy
+    case sesame
 
-    var id: Int { rawValue }
+    var id: String { rawValue }
 
-    var shortLabel: String {
+    var title: String {
         switch self {
-        case .monday: "Man"
-        case .tuesday: "Tir"
-        case .wednesday: "Ons"
-        case .thursday: "Tor"
-        case .friday: "Fre"
-        case .saturday: "Lør"
-        case .sunday: "Søn"
+        case .nuts: "Nøtter"
+        case .citrus: "Sitrusfrukt"
+        case .gluten: "Gluten"
+        case .egg: "Egg"
+        case .dairy: "Meieri"
+        case .shellfish: "Skalldyr"
+        case .soy: "Soya"
+        case .sesame: "Sesam"
         }
     }
+}
+
+enum AllergyAnswer: Equatable, Hashable {
+    case none
+    case listed(Set<AllergyCategory>)
+}
+
+enum HousingKind: String, CaseIterable, Identifiable, Hashable {
+    case apartment
+    case duplex
+    case house
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .apartment: "Leilighet"
+        case .duplex: "Tomannsbolig"
+        case .house: "Rekkehus/enebolig"
+        }
+    }
+
+    var needsFloor: Bool { self != .house }
+}
+
+enum Personality: String, CaseIterable, Identifiable, Hashable {
+    case crate
+    case leaf
+    case carrot
+    case flame
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .crate: "Kasse"
+        case .leaf: "Blad"
+        case .carrot: "Gulrot"
+        case .flame: "Flamme"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .crate: "shippingbox.fill"
+        case .leaf: "leaf.fill"
+        case .carrot: "carrot.fill"
+        case .flame: "flame.fill"
+        }
+    }
+}
+
+enum FamilyRole: String, CaseIterable, Identifiable, Hashable {
+    case adult
+    case child
+    case baby
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .adult: "Voksen"
+        case .child: "Barn"
+        case .baby: "Baby"
+        }
+    }
+}
+
+struct FamilyMember: Identifiable, Equatable, Hashable {
+    var id = UUID()
+    var name = ""
+    var role: FamilyRole = .adult
 }
 
 enum MealPlan: String, CaseIterable, Identifiable, Hashable {
@@ -71,21 +151,77 @@ enum MealPlan: String, CaseIterable, Identifiable, Hashable {
 @MainActor
 @Observable
 final class OnboardingState {
-    var name = ""
     var goal: OnboardingGoal?
-    var deliveryWeekday: DeliveryWeekday?
+    var allergies: AllergyAnswer?
+    var housing: HousingKind?
+    var floor: Int?
+    var name = ""
+    var personality: Personality?
+    var family: [FamilyMember] = []
     var plan: MealPlan?
+
+    static let floors = Array(1...8)
+
+    var noAllergiesSelected: Bool {
+        if case .none = allergies { return true }
+        return false
+    }
+
+    func allergySelected(_ category: AllergyCategory) -> Bool {
+        if case .listed(let set) = allergies {
+            return set.contains(category)
+        }
+        return false
+    }
+
+    func selectNoAllergies() {
+        allergies = .none
+    }
+
+    func toggleAllergy(_ category: AllergyCategory) {
+        switch allergies {
+        case .none, nil:
+            allergies = .listed([category])
+        case .listed(let set):
+            var next = set
+            if next.contains(category) {
+                next.remove(category)
+                allergies = next.isEmpty ? nil : .listed(next)
+            } else {
+                next.insert(category)
+                allergies = .listed(next)
+            }
+        }
+    }
+
+    func addFamilyMember() {
+        family.append(FamilyMember())
+    }
+
+    func removeFamilyMember(_ member: FamilyMember) {
+        family.removeAll { $0.id == member.id }
+    }
 
     func canContinue(from step: OnboardingStep) -> Bool {
         switch step {
-        case .cooking, .mealPlan:
+        case .cooking:
             true
-        case .name:
-            !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case .goal:
             goal != nil
-        case .deliveryDay:
-            deliveryWeekday != nil
+        case .allergies:
+            switch allergies {
+            case .none:
+                true
+            case .listed(let set):
+                !set.isEmpty
+            case nil:
+                false
+            }
+        case .address:
+            guard let housing else { return false }
+            return !housing.needsFloor || floor != nil
+        case .household:
+            !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && personality != nil
         case .pricing:
             plan != nil
         }
