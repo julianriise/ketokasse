@@ -7,7 +7,7 @@ struct ContentView: View {
 
     var body: some View {
         if onboardingComplete {
-            HomeShellView(name: answers.primaryName, onRestart: restartOnboarding)
+            HomeShellView(answers: answers, onRestart: restartOnboarding)
                 .environment(weekStore)
         } else {
             OnboardingFlow(answers: answers) {
@@ -17,7 +17,7 @@ struct ContentView: View {
     }
 
     private func restartOnboarding() {
-        answers = OnboardingState()
+        answers.reset()
         onboardingComplete = false
     }
 }
