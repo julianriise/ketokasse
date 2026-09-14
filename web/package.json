@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:domain": "node --experimental-strip-types --test src/features/signup/domain.test.ts",
+    "test:landing": "tsx --test src/features/landing/model.test.ts",
     "prebuild": "node scripts/decode-hero.mjs",
     "postinstall": "node scripts/decode-hero.mjs"
   },
