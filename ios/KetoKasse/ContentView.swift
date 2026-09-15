@@ -23,7 +23,7 @@ struct ContentView: View {
             case .signedOut:
                 AuthGateView()
             case .signedIn:
-                if auth.needsHandoff {
+                if auth.needsHandoff, household.householdID == nil {
                     AuthGateView()
                 } else {
                     signedInRoot
@@ -109,6 +109,7 @@ struct ContentView: View {
         await weekStore.syncRemote()
         await pointsStore.syncRemote()
         await household.startRealtime()
+        auth.acceptHandoff()
     }
 
     private func restartOnboarding() {

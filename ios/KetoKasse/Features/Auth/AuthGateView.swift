@@ -30,10 +30,6 @@ struct AuthGateView: View {
         AuthService.isValidEmail(trimmedEmail) && !isSending && (step == .email || cooldown == 0)
     }
 
-    private var householdReady: Bool {
-        household.householdID != nil && household.lastError == nil
-    }
-
     private var bubbleText: String {
         if let bubbleOverride { return bubbleOverride }
         if auth.linkError == .expiredLink {
@@ -45,13 +41,7 @@ struct AuthGateView: View {
         case .inbox:
             return "Vi sendte en lenke til \(trimmedEmail). Trykk den for å fortsette."
         case .ready:
-            if household.lastError != nil {
-                return household.lastError ?? "Koble til nett og prøv igjen."
-            }
-            if !householdReady {
-                return "Setter opp familien…"
-            }
-            return "Du er inne! La oss komme i gang."
+            return household.lastError ?? "Koble til nett og prøv igjen."
         }
     }
 
@@ -96,6 +86,7 @@ struct AuthGateView: View {
         }
         .onChange(of: auth.phase) { _, _ in syncStepWithAuth() }
         .onChange(of: auth.needsHandoff) { _, _ in syncStepWithAuth() }
+        .onChange(of: household.lastError) { _, _ in syncStepWithAuth() }
         .onChange(of: auth.linkError) { _, error in
             if error == .expiredLink {
                 bubbleOverride = "Lenken er utløpt."
@@ -209,7 +200,7 @@ struct AuthGateView: View {
         switch step {
         case .email: .hello
         case .inbox: .think
-        case .ready: householdReady ? .celebrate : .coach
+        case .ready: .think
         }
     }
 
@@ -217,22 +208,20 @@ struct AuthGateView: View {
         switch step {
         case .email: "Send lenke"
         case .inbox: "Send på nytt"
-        case .ready: household.lastError != nil ? "Prøv igjen" : "Fortsett"
+        case .ready: "Prøv igjen"
         }
     }
 
     private var primaryEnabled: Bool {
         switch step {
         case .email, .inbox: canSend
-        case .ready: householdReady || household.lastError != nil
+        case .ready: household.lastError != nil
         }
     }
 
     private var footerCaption: String {
         if step == .ready {
-            return householdReady
-                ? "Ingen passord. Du er logget inn på denne telefonen."
-                : "Vi gjør klar husholdningen."
+            return "Vi gjør klar husholdningen."
         }
         if step == .inbox, cooldown > 0 {
             return "Ny lenke om \(cooldown) s"
@@ -245,19 +234,12 @@ struct AuthGateView: View {
         case .email, .inbox:
             sendLink()
         case .ready:
-            if household.lastError != nil {
-                Task { await household.ensure() }
-            } else {
-                auth.acceptHandoff()
-            }
+            Task { await household.ensure() }
         }
     }
 
     private func syncStepWithAuth() {
-        guard auth.phase == .signedIn, auth.needsHandoff else { return }
-        if step != .ready {
-            hopToken += 1
-        }
+        guard auth.phase == .signedIn, auth.needsHandoff, household.lastError != nil else { return }
         bubbleOverride = nil
         emailFocused = false
         step = .ready
