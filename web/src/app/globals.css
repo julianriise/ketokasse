@@ -118,7 +118,8 @@ body {
   flex: 0 0 auto;
   width: 2.6rem;
   height: 2.6rem;
-  border-radius: 0.55rem;
+  border-radius: 0.62rem;
+  object-fit: cover;
 }
 
 .kk-cta-pill {
@@ -234,7 +235,7 @@ body {
 .kk-story-visual,
 .kk-anywhere-visual {
   width: 100%;
-  max-width: 28rem;
+  max-width: 22rem;
 }
 
 .kk-visual-img {
@@ -244,7 +245,13 @@ body {
   max-width: 100%;
 }
 
-.kk-story-visual {
+.kk-mascot-img {
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgb(14 21 14 / 0.12));
+}
+
+.kk-story-visual-framed {
+  max-width: 32rem;
   overflow: hidden;
   border-radius: 1.5rem;
 }
@@ -324,7 +331,7 @@ body {
 }
 
 .kk-anywhere-visual {
-  max-width: 42rem;
+  max-width: 22rem;
   margin-top: 1.5rem;
 }
 
@@ -355,6 +362,10 @@ body {
   .kk-hero-visual,
   .kk-story-visual {
     flex: 1 1 50%;
+    max-width: 24rem;
+  }
+
+  .kk-story-visual-framed {
     max-width: 32rem;
   }
 
@@ -409,9 +420,10 @@ body {
 }
 
 .kk-join-mascot {
-  width: 5.5rem;
-  height: 5.5rem;
-  border-radius: 1.25rem;
+  width: 8.5rem;
+  height: 8.5rem;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgb(14 21 14 / 0.12));
 }
 
 .kk-join-heading {

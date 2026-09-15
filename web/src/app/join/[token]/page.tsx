@@ -34,7 +34,6 @@ export default async function JoinPage({
               width={brand.logo.width}
               height={brand.logo.height}
               className="kk-logo"
-              unoptimized
               priority
             />
             <span>{brand.name}</span>
@@ -44,12 +43,11 @@ export default async function JoinPage({
       <main className="kk-join">
         <section className="kk-join-card">
           <Image
-            src="/visuals/logo.svg"
+            src="/visuals/mascot-hello.png"
             alt=""
-            width={96}
-            height={96}
+            width={1024}
+            height={1024}
             className="kk-join-mascot"
-            unoptimized
             priority
           />
           <h1 className="kk-join-heading">Bli med i husholdningen</h1>

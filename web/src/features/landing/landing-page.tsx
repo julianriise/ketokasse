@@ -19,7 +19,6 @@ export function LandingPage({ landing }: { landing: Landing }): JSX.Element {
               width={landing.brand.logo.width}
               height={landing.brand.logo.height}
               className="kk-logo"
-              unoptimized
               priority
             />
             <span>{landing.brand.name}</span>
@@ -98,7 +97,13 @@ function StoryBand({
           <h2 className="kk-story-heading">{band.heading}</h2>
           <p className="kk-story-body">{band.body}</p>
         </div>
-        <div className="kk-story-visual">
+        <div
+          className={
+            band.visual.src.endsWith('.jpg')
+              ? 'kk-story-visual kk-story-visual-framed'
+              : 'kk-story-visual'
+          }
+        >
           <BandVisual visual={band.visual} className="kk-visual-img" />
         </div>
       </div>
@@ -136,13 +141,14 @@ function BandVisual({
   priority?: boolean
 }): JSX.Element {
   const svg = visual.src.endsWith('.svg')
+  const mascot = visual.src.includes('mascot-')
   return (
     <Image
       src={visual.src}
       alt={visual.alt}
       width={visual.width}
       height={visual.height}
-      className={className}
+      className={mascot ? `${className} kk-mascot-img` : className}
       unoptimized={svg}
       priority={priority}
       sizes="(max-width: 800px) 92vw, 480px"
