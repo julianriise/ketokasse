@@ -7,9 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:landing": "tsx --test src/features/landing/model.test.ts",
-    "prebuild": "node scripts/decode-hero.mjs",
-    "postinstall": "node scripts/decode-hero.mjs"
+    "test:landing": "tsx --test src/features/landing/model.test.ts"
   },
   "dependencies": {
     "next": "16.3.5",

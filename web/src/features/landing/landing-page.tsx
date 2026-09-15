@@ -97,13 +97,7 @@ function StoryBand({
           <h2 className="kk-story-heading">{band.heading}</h2>
           <p className="kk-story-body">{band.body}</p>
         </div>
-        <div
-          className={
-            band.visual.src.endsWith('.jpg')
-              ? 'kk-story-visual kk-story-visual-framed'
-              : 'kk-story-visual'
-          }
-        >
+        <div className="kk-story-visual">
           <BandVisual visual={band.visual} className="kk-visual-img" />
         </div>
       </div>

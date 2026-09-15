@@ -250,12 +250,6 @@ body {
   filter: drop-shadow(0 10px 18px rgb(14 21 14 / 0.12));
 }
 
-.kk-story-visual-framed {
-  max-width: 32rem;
-  overflow: hidden;
-  border-radius: 1.5rem;
-}
-
 .kk-hero-copy,
 .kk-story-copy {
   display: flex;
@@ -363,10 +357,6 @@ body {
   .kk-story-visual {
     flex: 1 1 50%;
     max-width: 24rem;
-  }
-
-  .kk-story-visual-framed {
-    max-width: 32rem;
   }
 
   .kk-hero-copy,
