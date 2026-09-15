@@ -181,6 +181,8 @@ def assert_week_thumb_swipe_zone(week_text: str, motion_text: str) -> None:
         raise SystemExit("WeekPlannerView ScrollView fills the thumb swipe zone")
     if ".lineLimit(1)" not in week_text:
         raise SystemExit("week dish tiles must stay single-line for the compact row height")
+    if "minimumScaleFactor" in week_text or ".truncationMode(.tail)" not in week_text:
+        raise SystemExit("WeekDishTile must ellipsize long titles at full font size")
     if "Sveip til hjem" in week_text and "allowsHitTesting(false)" not in week_text:
         raise SystemExit("thumb-zone label must not capture gestures")
 
