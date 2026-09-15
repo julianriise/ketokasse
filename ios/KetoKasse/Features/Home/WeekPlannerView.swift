@@ -318,7 +318,7 @@ private struct WeekDishTile: View {
             .font(KKFont.body)
             .foregroundStyle(title == nil ? KKColor.muted : KKColor.ink)
             .lineLimit(1)
-            .minimumScaleFactor(0.8)
+            .truncationMode(.tail)
             .padding(.horizontal, 12)
             .frame(
                 maxWidth: .infinity,
