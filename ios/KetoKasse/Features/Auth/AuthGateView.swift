@@ -27,10 +27,16 @@ struct AuthGateView: View {
     }
 
     private func canSend(lockRemaining: TimeInterval) -> Bool {
-        AuthService.isValidEmail(trimmedEmail) && !isSending && cooldown == 0 && lockRemaining <= 0
+        lockRemaining <= 0
+            && cooldown == 0
+            && !isSending
+            && AuthService.isValidEmail(trimmedEmail)
     }
 
     private var bubbleText: String {
+        if auth.emailLockRemaining() > 0 {
+            return AuthFlowError.rateLimited.errorDescription ?? bubbleOverride ?? ""
+        }
         if let bubbleOverride { return bubbleOverride }
         if auth.linkError == .expiredLink {
             return "Lenken er utløpt."
@@ -85,6 +91,7 @@ struct AuthGateView: View {
         .sensoryFeedback(.impact(weight: .light), trigger: hopToken)
         .onAppear {
             if !reduceMotion { isBobbing = true }
+            auth.refreshEmailLock()
             applyStoredRateLimit()
             syncStepWithAuth()
         }
@@ -274,6 +281,7 @@ struct AuthGateView: View {
     }
 
     private func sendLink() {
+        if auth.emailLockRemaining() > 0 { return }
         let value = trimmedEmail
         guard AuthService.isValidEmail(value) else {
             fieldError = "Skriv inn en gyldig e-post."
@@ -281,7 +289,7 @@ struct AuthGateView: View {
             return
         }
         guard !isSending else { return }
-        if cooldown > 0 || auth.emailLockRemaining() > 0 { return }
+        if cooldown > 0 { return }
         fieldError = nil
         bubbleOverride = nil
         hopToken += 1

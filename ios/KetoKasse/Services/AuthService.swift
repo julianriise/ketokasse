@@ -26,13 +26,13 @@ final class AuthService {
     var needsHandoff = false
 
     private static let emailRateLimitUntilKey = "kk.auth.emailRateLimitUntil"
+    private static let emailSendLogKey = "kk.auth.emailSendLog"
+    private static let emailWindow: TimeInterval = 3600
+    private static let maxEmailsInWindow = 2
     private(set) var emailRateLimitUntil: Date?
 
     init() {
-        let raw = UserDefaults.standard.double(forKey: Self.emailRateLimitUntilKey)
-        if raw > Date().timeIntervalSince1970 {
-            emailRateLimitUntil = Date(timeIntervalSince1970: raw)
-        }
+        refreshEmailLock(at: Date())
     }
 
     func emailLockRemaining(at now: Date = .now) -> TimeInterval {
@@ -70,13 +70,14 @@ final class AuthService {
     }
 
     func sendMagicLink(email: String) async throws {
-        guard emailLockRemaining() == 0 else { throw AuthFlowError.rateLimited }
+        if emailLockRemaining() > 0 { throw AuthFlowError.rateLimited }
         guard let client = KKSupabase.client else { throw AuthFlowError.missingConfig }
         do {
             try await client.auth.signInWithOTP(
                 email: email,
                 redirectTo: InviteURL.authCallback
             )
+            recordSuccessfulEmailSend()
         } catch {
             let mapped = Self.mapSendError(error)
             if mapped == .rateLimited {
@@ -86,16 +87,50 @@ final class AuthService {
         }
     }
 
-    func markEmailRateLimited(for interval: TimeInterval = 3600) {
-        let until = Date().addingTimeInterval(interval)
-        emailRateLimitUntil = until
-        UserDefaults.standard.set(until.timeIntervalSince1970, forKey: Self.emailRateLimitUntilKey)
+    func markEmailRateLimited() {
+        if emailLockRemaining() > 0 { return }
+        persistUntil(Date().addingTimeInterval(Self.emailWindow))
     }
 
     func clearEmailRateLimitIfExpired(at now: Date = .now) {
-        guard let emailRateLimitUntil, emailRateLimitUntil <= now else { return }
-        self.emailRateLimitUntil = nil
-        UserDefaults.standard.removeObject(forKey: Self.emailRateLimitUntilKey)
+        refreshEmailLock(at: now)
+    }
+
+    func refreshEmailLock(at now: Date = .now) {
+        let log = sendLog(at: now)
+        var until: Date?
+        let stored = UserDefaults.standard.double(forKey: Self.emailRateLimitUntilKey)
+        if stored > now.timeIntervalSince1970 {
+            until = Date(timeIntervalSince1970: stored)
+        }
+        if log.count >= Self.maxEmailsInWindow, let oldest = log.min() {
+            let fromLog = Date(timeIntervalSince1970: oldest + Self.emailWindow)
+            until = [until, fromLog].compactMap { $0 }.max()
+        }
+        persistUntil(until)
+    }
+
+    private func recordSuccessfulEmailSend(at now: Date = .now) {
+        var log = sendLog(at: now)
+        log.append(now.timeIntervalSince1970)
+        UserDefaults.standard.set(log, forKey: Self.emailSendLogKey)
+        refreshEmailLock(at: now)
+    }
+
+    private func persistUntil(_ until: Date?) {
+        if emailRateLimitUntil != until {
+            emailRateLimitUntil = until
+        }
+        if let until {
+            UserDefaults.standard.set(until.timeIntervalSince1970, forKey: Self.emailRateLimitUntilKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: Self.emailRateLimitUntilKey)
+        }
+    }
+
+    private func sendLog(at now: Date) -> [TimeInterval] {
+        let raw = UserDefaults.standard.array(forKey: Self.emailSendLogKey) as? [TimeInterval] ?? []
+        return raw.filter { now.timeIntervalSince1970 - $0 < Self.emailWindow }
     }
 
     func handleOpenURL(_ url: URL) async {

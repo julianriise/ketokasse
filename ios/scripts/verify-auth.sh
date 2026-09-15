@@ -65,8 +65,12 @@ if "cook_events" not in repo:
     raise SystemExit("repository missing cook_events")
 if "commit(to" not in session:
     raise SystemExit("CookingSession missing commit(to")
-if "signInWithOTP" not in read(app / "Services/AuthService.swift"):
+auth_service = read(app / "Services/AuthService.swift")
+if "signInWithOTP" not in auth_service:
     raise SystemExit("AuthService missing signInWithOTP")
+send = auth_service.split("func sendMagicLink", 1)[-1].split("func ", 1)[0]
+if "emailLockRemaining" not in send.split("signInWithOTP")[0]:
+    raise SystemExit("sendMagicLink must refuse OTP while the email lock is active")
 if "ketokasse://join/" not in join_web:
     raise SystemExit("join page missing app deep link")
 if "Åpne i Ketokasse" not in join_web:
