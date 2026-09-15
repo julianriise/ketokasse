@@ -12,8 +12,8 @@ enum KKMotion {
     static let skyCircle: CGFloat = 280
 
     static let dragLiftScale: CGFloat = 1.04
-    static let weekRowHeight: CGFloat = 64
-    static let weekRowSpacing: CGFloat = 8
+    static let weekRowHeight: CGFloat = 48
+    static let weekRowSpacing: CGFloat = 6
 
     static var weekRowStride: CGFloat { weekRowHeight + weekRowSpacing }
 

@@ -156,6 +156,35 @@ def assert_move_slot_behavior() -> None:
         raise SystemExit("same-slot move changed the plan")
 
 
+def parse_cgfloat_constant(swift_text: str, name: str) -> float:
+    match = re.search(rf"static let {re.escape(name)}: CGFloat = ([0-9.]+)", swift_text)
+    if match is None:
+        raise SystemExit(f"Motion missing {name}")
+    return float(match.group(1))
+
+
+def assert_week_thumb_swipe_zone(week_text: str, motion_text: str) -> None:
+    height = parse_cgfloat_constant(motion_text, "weekRowHeight")
+    spacing = parse_cgfloat_constant(motion_text, "weekRowSpacing")
+    if height > 52:
+        raise SystemExit(f"weekRowHeight {height} is too tall for the thumb swipe zone")
+    if spacing > 6:
+        raise SystemExit(f"weekRowSpacing {spacing} is too open for the compact board")
+    if "weekRowHeight + weekRowSpacing" not in motion_text:
+        raise SystemExit("weekRowStride must stay derived from height and spacing")
+    spacer = re.search(r"Spacer\(minLength:\s*(\d+(?:\.\d+)?)", week_text)
+    if spacer is None:
+        raise SystemExit("WeekPlannerView missing thumb-zone Spacer(minLength:)")
+    if float(spacer.group(1)) < 120:
+        raise SystemExit(f"thumb-zone Spacer minLength {spacer.group(1)} is too small")
+    if "ScrollView" in week_text:
+        raise SystemExit("WeekPlannerView ScrollView fills the thumb swipe zone")
+    if ".lineLimit(1)" not in week_text:
+        raise SystemExit("week dish tiles must stay single-line for the compact row height")
+    if "Sveip til hjem" in week_text and "allowsHitTesting(false)" not in week_text:
+        raise SystemExit("thumb-zone label must not capture gestures")
+
+
 def assert_week_pager_stays_free_until_drag(week_text: str) -> None:
     is_active = re.search(r"var isActive: Bool \{(?P<body>.*?)\n    \}", week_text, re.S)
     if is_active is None:
