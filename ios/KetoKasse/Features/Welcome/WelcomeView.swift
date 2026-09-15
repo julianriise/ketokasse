@@ -14,7 +14,7 @@ struct WelcomeView: View {
             VStack(spacing: 8) {
                 SpeechBubbleView(text: copy.headline, tail: .bottom)
                     .padding(.horizontal, 32)
-                MascotView(hopToken: hopToken, isBobbing: isBobbing, size: KKMotion.mascotHero)
+                MascotView(hopToken: hopToken, isBobbing: isBobbing, pose: .hello, size: KKMotion.mascotHero)
                     .shadow(color: KKColor.ink.opacity(0.10), radius: 18, y: 10)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("KetoKasse-maskot")
