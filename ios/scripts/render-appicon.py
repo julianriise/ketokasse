@@ -16,8 +16,8 @@ LOGO = ROOT / "KetoKasse/Assets.xcassets/Logo.imageset/logo.svg"
 DEST = ROOT / "KetoKasse/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 FOREST = (0x00, 0x47, 0x3C)
 OLD_GREEN = (0x58, 0xCC, 0x02)
-LIME = (0xE6, 0xFF, 0x55)
-LIME_LID = (0x2D, 0x6B, 0x52)
+WHITE = (0xFF, 0xFF, 0xFF)
+BLUSH = (0xF9, 0xDF, 0xCE)
 SIZE = 1024
 
 
@@ -63,15 +63,15 @@ def verify(image: Image.Image) -> None:
     total = SIZE * SIZE
     old = near_count(counts, OLD_GREEN)
     forest = near_count(counts, FOREST)
-    lime = near_count(counts, LIME)
-    lid = near_count(counts, LIME_LID)
+    white = near_count(counts, WHITE)
+    blush = near_count(counts, BLUSH)
     if old / total > 0.01:
         raise SystemExit(f"old #58CC02 still covers {100 * old / total:.1f}%")
-    if forest == 0 or lime == 0:
-        raise SystemExit("missing forest or lime in AppIcon")
+    if forest == 0 or white == 0 or blush == 0:
+        raise SystemExit("missing forest, white, or blush in AppIcon")
     print(
         f"ok  {SIZE}x{SIZE} RGB forest={100 * forest / total:.1f}% "
-        f"limeLid={100 * lid / total:.1f}% lime={100 * lime / total:.1f}% "
+        f"white={100 * white / total:.1f}% blush={100 * blush / total:.1f}% "
         f"old58CC02={100 * old / total:.1f}%"
     )
 

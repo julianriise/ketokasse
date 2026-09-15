@@ -1,18 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
-  <path d="M58 8c10 3 14 14 6 22-10-3-14-14-6-22Z" fill="#00473C"/>
-  <path d="M62 14c1.6 3.4 3.2 6.6 4.6 10" stroke="#00473C" stroke-width="1.6" stroke-linecap="round"/>
-  <rect x="11" y="22" width="58" height="48" rx="12" fill="#00473C"/>
-  <rect x="11" y="22" width="58" height="16" rx="10" fill="#2D6B52"/>
-  <rect x="18" y="18" width="44" height="10" rx="5" fill="#E6FF55"/>
-  <rect x="25" y="40" width="5" height="24" rx="2.5" fill="#0E150E" opacity=".4"/>
-  <rect x="50" y="40" width="5" height="24" rx="2.5" fill="#0E150E" opacity=".4"/>
-  <circle cx="30" cy="46" r="7.2" fill="#fff"/>
-  <circle cx="50" cy="46" r="7.2" fill="#fff"/>
-  <circle cx="32" cy="47.4" r="3.3" fill="#00473C"/>
-  <circle cx="52" cy="47.4" r="3.3" fill="#00473C"/>
-  <circle cx="33.4" cy="46" r="1.15" fill="#fff"/>
-  <circle cx="53.4" cy="46" r="1.15" fill="#fff"/>
-  <path d="M33 58c3.6 5.2 10.4 5.2 14 0" stroke="#00473C" stroke-width="3.1" stroke-linecap="round"/>
-  <ellipse cx="21" cy="54" rx="4.2" ry="2.5" fill="#F9DFCE"/>
-  <ellipse cx="59" cy="54" rx="4.2" ry="2.5" fill="#F9DFCE"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024"
+     role="img" aria-label="KetoKasse app icon">
+  <title>KetoKasse app icon</title>
+  <rect width="1024" height="1024" fill="#00473C"/>
+  <circle cx="312" cy="368" r="210" fill="#FFFFFF"/>
+  <circle cx="712" cy="368" r="210" fill="#FFFFFF"/>
+  <circle cx="354" cy="390" r="92" fill="#00473C"/>
+  <circle cx="670" cy="390" r="92" fill="#00473C"/>
+  <circle cx="386" cy="354" r="28" fill="#FFFFFF"/>
+  <circle cx="702" cy="354" r="28" fill="#FFFFFF"/>
+  <ellipse cx="156" cy="628" rx="74" ry="40" fill="#F9DFCE"/>
+  <ellipse cx="868" cy="628" rx="74" ry="40" fill="#F9DFCE"/>
+  <path d="M348 692 Q512 798 676 692"
+        fill="none" stroke="#0E150E" stroke-width="32"
+        stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

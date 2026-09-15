@@ -118,6 +118,7 @@ body {
   flex: 0 0 auto;
   width: 2.6rem;
   height: 2.6rem;
+  border-radius: 0.55rem;
 }
 
 .kk-cta-pill {
