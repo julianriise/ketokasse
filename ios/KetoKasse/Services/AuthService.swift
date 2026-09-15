@@ -25,6 +25,14 @@ final class AuthService {
     var linkError: AuthFlowError?
     var needsHandoff = false
 
+    private static let emailRateLimitUntilKey = "kk.auth.emailRateLimitUntil"
+
+    var emailRateLimitRemaining: TimeInterval {
+        let until = UserDefaults.standard.double(forKey: Self.emailRateLimitUntilKey)
+        guard until > 0 else { return 0 }
+        return max(0, until - Date().timeIntervalSince1970)
+    }
+
     var userID: UUID? { session?.user.id }
     var email: String? { session?.user.email }
 
@@ -55,11 +63,25 @@ final class AuthService {
     }
 
     func sendMagicLink(email: String) async throws {
+        guard emailRateLimitRemaining == 0 else { throw AuthFlowError.rateLimited }
         guard let client = KKSupabase.client else { throw AuthFlowError.missingConfig }
-        try await client.auth.signInWithOTP(
-            email: email,
-            redirectTo: InviteURL.authCallback
-        )
+        do {
+            try await client.auth.signInWithOTP(
+                email: email,
+                redirectTo: InviteURL.authCallback
+            )
+        } catch {
+            let mapped = Self.mapSendError(error)
+            if mapped == .rateLimited {
+                markEmailRateLimited()
+            }
+            throw mapped
+        }
+    }
+
+    func markEmailRateLimited(for interval: TimeInterval = 3600) {
+        let until = Date().addingTimeInterval(interval)
+        UserDefaults.standard.set(until.timeIntervalSince1970, forKey: Self.emailRateLimitUntilKey)
     }
 
     func handleOpenURL(_ url: URL) async {
@@ -111,9 +133,15 @@ final class AuthService {
 
     static func mapSendError(_ error: Error) -> AuthFlowError {
         if let flow = error as? AuthFlowError { return flow }
+        if let auth = error as? AuthError, auth.errorCode == .overEmailSendRateLimit {
+            return .rateLimited
+        }
         let text = error.localizedDescription.lowercased()
         let dumped = String(describing: error).lowercased()
-        if text.contains("rate") || dumped.contains("rate") || text.contains("429") {
+        if dumped.contains("over_email_send_rate_limit") || text.contains("429") {
+            return .rateLimited
+        }
+        if text.contains("rate") || dumped.contains("rate") {
             return .rateLimited
         }
         return .message(error.localizedDescription)
@@ -124,7 +152,7 @@ extension AuthFlowError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidEmail: "Skriv inn en gyldig e-post."
-        case .rateLimited: "Vent litt og prøv igjen."
+        case .rateLimited: "For mange e-poster denne timen. Vent og prøv igjen."
         case .expiredLink: "Lenken er utløpt."
         case .missingConfig: "Mangler tilkobling til konto."
         case .message(let text): text

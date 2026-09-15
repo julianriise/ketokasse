@@ -27,7 +27,7 @@ struct AuthGateView: View {
     }
 
     private var canSend: Bool {
-        AuthService.isValidEmail(trimmedEmail) && !isSending && (step == .email || cooldown == 0)
+        AuthService.isValidEmail(trimmedEmail) && !isSending && cooldown == 0
     }
 
     private var bubbleText: String {
@@ -82,6 +82,7 @@ struct AuthGateView: View {
         .sensoryFeedback(.impact(weight: .light), trigger: hopToken)
         .onAppear {
             if !reduceMotion { isBobbing = true }
+            applyStoredRateLimit()
             syncStepWithAuth()
         }
         .onChange(of: auth.phase) { _, _ in syncStepWithAuth() }
@@ -223,8 +224,8 @@ struct AuthGateView: View {
         if step == .ready {
             return "Vi gjør klar husholdningen."
         }
-        if step == .inbox, cooldown > 0 {
-            return "Ny lenke om \(cooldown) s"
+        if cooldown > 0 {
+            return cooldownLabel
         }
         return "Ingen passord. Åpne lenken på denne telefonen."
     }
@@ -253,7 +254,7 @@ struct AuthGateView: View {
             return
         }
         guard !isSending else { return }
-        if step == .inbox, cooldown > 0 { return }
+        if cooldown > 0 { return }
         fieldError = nil
         bubbleOverride = nil
         hopToken += 1
@@ -268,7 +269,8 @@ struct AuthGateView: View {
             } catch {
                 let mapped = AuthService.mapSendError(error)
                 if mapped == .rateLimited {
-                    bubbleOverride = "Vent litt og prøv igjen."
+                    applyStoredRateLimit()
+                    bubbleOverride = mapped.errorDescription
                 } else if mapped == .invalidEmail {
                     fieldError = mapped.errorDescription
                 } else {
@@ -276,6 +278,22 @@ struct AuthGateView: View {
                 }
             }
         }
+    }
+
+    private var cooldownLabel: String {
+        if cooldown >= 60 {
+            let minutes = Int((Double(cooldown) / 60.0).rounded(.up))
+            if minutes == 1 { return "Ny lenke om 1 minutt" }
+            return "Ny lenke om \(minutes) minutter"
+        }
+        return "Ny lenke om \(cooldown) s"
+    }
+
+    private func applyStoredRateLimit() {
+        let remaining = Int(auth.emailRateLimitRemaining.rounded(.up))
+        guard remaining > 0 else { return }
+        cooldown = remaining
+        bubbleOverride = AuthFlowError.rateLimited.errorDescription
     }
 
     private func changeEmail() {

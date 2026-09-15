@@ -38,7 +38,7 @@ struct SettingsView: View {
             .confirmationDialog("Slette kontoen?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Slett kontoen", role: .destructive, action: onDeleteAccount)
             } message: {
-                Text("Er du sikker? E-post, husholdning og poeng blir borte. Dette kan ikke angres.")
+                Text("Er du sikker? E-post, husholdning og poeng blir borte. Ny magisk lenke kan ta opptil en time.")
             }
             .sheet(isPresented: $showShare) {
                 ShareHouseholdView()
