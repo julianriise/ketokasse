@@ -8,9 +8,11 @@ pass() { echo "ok  $*" ; }
 
 test -f "$APP/Features/Onboarding/OnboardingState.swift" || fail "missing OnboardingState.swift"
 test -f "$APP/Features/Onboarding/OnboardingFlow.swift" || fail "missing OnboardingFlow.swift"
+test -f "$APP/Features/Onboarding/OnboardingChrome.swift" || fail "missing OnboardingChrome.swift"
 test -f "$APP/Features/Onboarding/CookingFunView.swift" || fail "missing CookingFunView.swift"
 test -f "$APP/Features/Onboarding/AskViews.swift" || fail "missing AskViews.swift"
 test -f "$APP/Features/Onboarding/PricingView.swift" || fail "missing PricingView.swift"
+test -f "$APP/Features/Welcome/SpeechBubbleView.swift" || fail "missing SpeechBubbleView.swift"
 test -f "$APP/Features/Home/HomeView.swift" || fail "missing HomeView.swift"
 test -f "$APP/Features/Home/WeekPlannerView.swift" || fail "missing WeekPlannerView.swift"
 ! test -e "$APP/Features/Home/HomePlaceholderView.swift" || fail "HomePlaceholderView.swift must be gone"
@@ -43,9 +45,17 @@ for needle in [
     "KOM I GANG",
     "Ingen binding · Avslutt når som helst",
     "onContinue()",
+    "SpeechBubbleView(text: copy.headline",
+    "OnboardingStickyFooter",
+    "tail: .bottom",
+    "KKMotion.mascotHero",
 ]:
     if needle not in welcome:
         raise SystemExit(f"WelcomeView missing {needle!r}")
+if "skyCircle" in welcome:
+    raise SystemExit("WelcomeView still draws a sky circle")
+if "KKFont.headline" in welcome:
+    raise SystemExit("WelcomeView still uses headline outside the bubble")
 
 flow = read("Features/Onboarding/OnboardingFlow.swift")
 if "WelcomeView(onContinue:" not in flow:
@@ -65,6 +75,8 @@ for live in [
 ]:
     if live not in flow:
         raise SystemExit(f"OnboardingFlow missing {live}")
+if "struct OnboardingChrome" in flow:
+    raise SystemExit("OnboardingChrome must live in OnboardingChrome.swift")
 
 content = read("ContentView.swift")
 if '@AppStorage("onboardingComplete")' not in content:
@@ -96,10 +108,12 @@ for needle in [
     "carrot.fill",
     "fork.knife",
     "flame.fill",
+    'bubbleText: "Matlaging skal være gøy"',
+    "step: .cooking",
 ]:
     if needle not in cooking:
         raise SystemExit(f"CookingFunView missing {needle!r}")
-for fluff in ["Dette gjør matlaging gøy.", "Neste steg", "Maskoten følger deg"]:
+for fluff in ["Dette gjør matlaging gøy.", "Neste steg", "Maskoten følger deg", "skyCircle", "MascotView"]:
     if fluff in cooking:
         raise SystemExit(f"CookingFunView still has fluff {fluff!r}")
 
@@ -118,6 +132,14 @@ for needle in [
     "FamilyRoleAvatar",
     "selectNoAllergies",
     "toggleAllergy",
+    'bubbleText: "Hva er viktigst?"',
+    'bubbleText: "Allergier"',
+    'bubbleText: "Hvor bor du?"',
+    'bubbleText: "Hvem bor her?"',
+    "step: .goal",
+    "step: .allergies",
+    "step: .address",
+    "step: .household",
 ]:
     if needle not in ask:
         raise SystemExit(f"AskViews missing {needle!r}")
@@ -169,6 +191,7 @@ for needle in [
     "kr 2 290,–",
     "case noAllergies",
     "needsFloor",
+    "var progress: Double",
 ]:
     if needle not in state:
         raise SystemExit(f"OnboardingState missing {needle!r}")
@@ -202,9 +225,62 @@ if "personality" in household_gate.group(1):
     raise SystemExit("canContinue(.household) still uses personality")
 
 pricing = read("Features/Onboarding/PricingView.swift")
-for needle in ["5 måltider for 2", "FERDIG", "Samme kutt", "ikke mer i lomma"]:
+for needle in [
+    "5 måltider for 2",
+    "FERDIG",
+    "Samme kutt",
+    "ikke mer i lomma",
+    'bubbleText: "Sånn! Velg kvalitet."',
+    "step: .pricing",
+]:
     if needle not in pricing:
         raise SystemExit(f"PricingView missing {needle!r}")
+
+chrome = read("Features/Onboarding/OnboardingChrome.swift")
+for needle in [
+    "var bubbleText: String",
+    "OnboardingProgressBar",
+    "SpeechBubbleView",
+    "OnboardingStickyFooter",
+    "MascotView",
+    "KKColor.line",
+    "KKColor.forest",
+    "chevron.left",
+    "GetStartedButton",
+    "step.progress",
+    "tail: .leading",
+    "KKMotion.mascotCoach",
+    "frame(height: 1)",
+]:
+    if needle not in chrome:
+        raise SystemExit(f"OnboardingChrome missing {needle!r}")
+if "KKFont.headline" in chrome:
+    raise SystemExit("OnboardingChrome still uses headline as the step title")
+if "safeAreaInset" in chrome:
+    raise SystemExit("OnboardingChrome still overlays the CTA with safeAreaInset")
+
+bubble = read("Features/Welcome/SpeechBubbleView.swift")
+for needle in [
+    "struct SpeechBubbleView",
+    "struct TypewriterText",
+    "accessibilityReduceMotion",
+    "split(whereSeparator:",
+    "accessibilityLabel(text)",
+    "Task.sleep",
+    "KKColor.line",
+    "case leading",
+    "case bottom",
+]:
+    if needle not in bubble:
+        raise SystemExit(f"SpeechBubbleView missing {needle!r}")
+if "milliseconds(80)" not in bubble:
+    raise SystemExit("TypewriterText is not revealing word by word")
+
+motion = read("DesignSystem/Motion.swift")
+if "mascotHero" not in motion or "mascotCoach" not in motion:
+    raise SystemExit("KKMotion missing mascotHero/mascotCoach sizes")
+if "skyCircle" in motion:
+    raise SystemExit("KKMotion still has skyCircle")
 
 home = read("Features/Home/HomeView.swift")
 if "Uka di er klar." in home:

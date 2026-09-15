@@ -6,7 +6,8 @@ struct GoalAskView: View {
 
     var body: some View {
         OnboardingChrome(
-            title: "Hva er viktigst?",
+            step: .goal,
+            bubbleText: "Hva er viktigst?",
             ctaTitle: "FORTSETT",
             ctaEnabled: answers.canContinue(from: .goal),
             action: onContinue
@@ -32,7 +33,8 @@ struct AllergiesAskView: View {
 
     var body: some View {
         OnboardingChrome(
-            title: "Allergier",
+            step: .allergies,
+            bubbleText: "Allergier",
             support: "Velg det som gjelder, eller Ingen.",
             ctaTitle: "FORTSETT",
             ctaEnabled: answers.canContinue(from: .allergies),
@@ -64,7 +66,8 @@ struct AddressAskView: View {
 
     var body: some View {
         OnboardingChrome(
-            title: "Hvor bor du?",
+            step: .address,
+            bubbleText: "Hvor bor du?",
             ctaTitle: "FORTSETT",
             ctaEnabled: answers.canContinue(from: .address),
             action: onContinue
@@ -117,7 +120,8 @@ struct HouseholdAskView: View {
 
     var body: some View {
         OnboardingChrome(
-            title: "Hvem bor her?",
+            step: .household,
+            bubbleText: "Hvem bor her?",
             ctaTitle: "FORTSETT",
             ctaEnabled: canProceed,
             action: continueAfterFlushingDraft

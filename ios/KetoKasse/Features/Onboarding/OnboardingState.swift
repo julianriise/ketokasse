@@ -11,6 +11,10 @@ enum OnboardingStep: Int, Hashable, CaseIterable {
     var next: OnboardingStep? {
         OnboardingStep(rawValue: rawValue + 1)
     }
+
+    var progress: Double {
+        Double(rawValue) / Double(Self.allCases.count)
+    }
 }
 
 enum OnboardingGoal: String, CaseIterable, Identifiable, Hashable, Codable {
