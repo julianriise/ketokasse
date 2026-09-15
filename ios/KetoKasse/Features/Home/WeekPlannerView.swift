@@ -124,7 +124,7 @@ struct WeekPlannerView: View {
             content.offset(y: followsFinger ? 0 : gapOffset(for: index))
         }
         .zIndex(followsFinger ? 10 : 0)
-        .gesture(slotGesture(for: item, index: index))
+        .simultaneousGesture(slotGesture(for: item, index: index))
         .accessibilityLabel(accessibilityLabel(for: index, title: item.title))
         .accessibilityHint("Hold inne og dra for å flytte")
         .accessibilityAction(named: "Flytt opp") {
@@ -137,7 +137,7 @@ struct WeekPlannerView: View {
 
     private func slotGesture(for item: WeekSlotItem, index: Int) -> some Gesture {
         LongPressGesture(minimumDuration: 0.28, maximumDistance: 12)
-            .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .named(Self.boardSpace)))
+            .sequenced(before: DragGesture(minimumDistance: 16, coordinateSpace: .named(Self.boardSpace)))
             .updating($drag) { value, state, _ in
                 switch value {
                 case .first(true):
@@ -248,7 +248,10 @@ private enum WeekSlotDrag: Equatable {
     }
 
     var isActive: Bool {
-        self != .inactive
+        switch self {
+        case .dragging: true
+        case .inactive, .pressing: false
+        }
     }
 
     static func targetIndex(source: Int, translation: CGSize) -> Int {
