@@ -7,13 +7,14 @@ enum OnboardingStep: Int, Hashable, CaseIterable {
     case address
     case household
     case pricing
+    case start
 
     var next: OnboardingStep? {
         OnboardingStep(rawValue: rawValue + 1)
     }
 
     var progress: Double {
-        Double(rawValue) / Double(Self.allCases.count)
+        Double(rawValue) / Double(Self.pricing.rawValue)
     }
 }
 
@@ -255,6 +256,8 @@ final class OnboardingState {
             }
         case .pricing:
             return plan != nil
+        case .start:
+            return true
         }
     }
 

@@ -11,8 +11,6 @@ const files = [
 	'web/public/visuals/logo.svg',
 	'web/public/visuals/monday.svg',
 	'web/public/visuals/recipes.svg',
-	'ios/KetoKasse/Assets.xcassets/Logo.imageset/logo.svg',
-	'ios/KetoKasse/Resources/Visuals/logo.svg',
 ]
 
 const map = [

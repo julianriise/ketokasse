@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WelcomeView: View {
     var copy: WelcomeCopy = .bokmal
+    var pose: MascotPose = .hello
     var onContinue: () -> Void = {}
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -14,7 +15,7 @@ struct WelcomeView: View {
             VStack(spacing: 8) {
                 SpeechBubbleView(text: copy.headline, tail: .bottom)
                     .padding(.horizontal, 32)
-                MascotView(hopToken: hopToken, isBobbing: isBobbing, pose: .hello, size: KKMotion.mascotHero)
+                MascotView(hopToken: hopToken, isBobbing: isBobbing, pose: pose, size: KKMotion.mascotHero)
                     .shadow(color: KKColor.ink.opacity(0.10), radius: 18, y: 10)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("KetoKasse-maskot")
@@ -46,15 +47,25 @@ struct WelcomeView: View {
 struct WelcomeCopy: Equatable, Sendable {
     var headline: String
     var cta: String
-    var footer: String
+    var footer: String?
 
     static let bokmal = WelcomeCopy(
         headline: "Den gøyeste måten å spise keto på",
         cta: "KOM I GANG",
         footer: "Ingen binding · Avslutt når som helst"
     )
+
+    static let ready = WelcomeCopy(
+        headline: "La oss komme i gang med middagen!",
+        cta: "KOM I GANG",
+        footer: nil
+    )
 }
 
 #Preview("iPhone") {
     WelcomeView()
+}
+
+#Preview("Klar") {
+    WelcomeView(copy: .ready, pose: .celebrate)
 }

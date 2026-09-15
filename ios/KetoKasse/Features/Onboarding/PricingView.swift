@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PricingView: View {
     @Bindable var answers: OnboardingState
-    var onFinished: () -> Void = {}
+    var onContinue: () -> Void = {}
 
     var body: some View {
         OnboardingChrome(
@@ -10,9 +10,9 @@ struct PricingView: View {
             bubbleText: "Sånn! Velg kvalitet.",
             pose: .celebrate,
             support: "5 måltider for 2. Samme kutt. Bedre råvarer, ikke mer i lomma.",
-            ctaTitle: "FERDIG",
+            ctaTitle: "FORTSETT",
             ctaEnabled: answers.canContinue(from: .pricing),
-            action: onFinished
+            action: onContinue
         ) {
             VStack(spacing: 12) {
                 ForEach(MealPlan.allCases) { plan in
@@ -57,6 +57,6 @@ struct PricingView: View {
 
 #Preview {
     NavigationStack {
-        PricingView(answers: OnboardingState(), onFinished: {})
+        PricingView(answers: OnboardingState(), onContinue: {})
     }
 }

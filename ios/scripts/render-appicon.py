@@ -3,16 +3,14 @@
 
 from __future__ import annotations
 
-import subprocess
 import sys
-import tempfile
 from collections import Counter
 from pathlib import Path
 
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-LOGO = ROOT / "KetoKasse/Assets.xcassets/Logo.imageset/logo.svg"
+LOGO = ROOT / "KetoKasse/Assets.xcassets/Logo.imageset/logo.png"
 DEST = ROOT / "KetoKasse/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 FOREST = (0x00, 0x47, 0x3C)
 OLD_GREEN = (0x58, 0xCC, 0x02)
@@ -30,21 +28,11 @@ def near_count(counts: Counter, target: tuple[int, int, int], tol: int = 8) -> i
     )
 
 
-def rasterize(svg: Path, size: int) -> Image.Image:
-    with tempfile.NamedTemporaryFile(suffix=".png") as tmp:
-        cmd = [
-            "rsvg-convert",
-            "--width",
-            str(size),
-            "--height",
-            str(size),
-            "--keep-aspect-ratio",
-            str(svg),
-            "--output",
-            tmp.name,
-        ]
-        subprocess.run(cmd, check=True)
-        return Image.open(tmp.name).convert("RGBA")
+def rasterize(path: Path, size: int) -> Image.Image:
+    image = Image.open(path).convert("RGBA")
+    if image.size != (size, size):
+        image = image.resize((size, size), Image.Resampling.LANCZOS)
+    return image
 
 
 def flatten(mascot: Image.Image) -> Image.Image:
@@ -79,12 +67,7 @@ def verify(image: Image.Image) -> None:
 def main() -> None:
     if not LOGO.is_file():
         raise SystemExit(f"missing {LOGO}")
-    try:
-        mascot = rasterize(LOGO, SIZE)
-    except FileNotFoundError:
-        raise SystemExit("rsvg-convert is required") from None
-    except subprocess.CalledProcessError as error:
-        raise SystemExit(f"rsvg-convert failed: {error}") from None
+    mascot = rasterize(LOGO, SIZE)
     icon = flatten(mascot)
     DEST.parent.mkdir(parents=True, exist_ok=True)
     icon.save(DEST, format="PNG")
