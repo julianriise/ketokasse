@@ -4,10 +4,12 @@ struct SettingsView: View {
     @Bindable var answers: OnboardingState
     var onRestart: () -> Void
     var onSignOut: () -> Void = {}
+    var onDeleteAccount: () -> Void = {}
 
     @State private var draftName = ""
     @State private var draftRole: FamilyRole = .man
     @State private var confirmRestart = false
+    @State private var confirmDelete = false
     @State private var showShare = false
 
     private var canAddMember: Bool {
@@ -32,6 +34,11 @@ struct SettingsView: View {
             .toolbarBackground(KKColor.white, for: .navigationBar)
             .confirmationDialog("Start på nytt?", isPresented: $confirmRestart, titleVisibility: .visible) {
                 Button("Start på nytt", role: .destructive, action: onRestart)
+            }
+            .confirmationDialog("Slette kontoen?", isPresented: $confirmDelete, titleVisibility: .visible) {
+                Button("Slett kontoen", role: .destructive, action: onDeleteAccount)
+            } message: {
+                Text("Er du sikker? E-post, husholdning og poeng blir borte. Dette kan ikke angres.")
             }
             .sheet(isPresented: $showShare) {
                 ShareHouseholdView()
@@ -209,6 +216,10 @@ struct SettingsView: View {
             .foregroundStyle(KKColor.ink)
             Button("Start på nytt", role: .destructive) {
                 confirmRestart = true
+            }
+            .font(KKFont.body)
+            Button("Slett konto", role: .destructive) {
+                confirmDelete = true
             }
             .font(KKFont.body)
         } header: {

@@ -64,7 +64,7 @@ struct ContentView: View {
         } else if auth.pendingInviteToken != nil {
             JoinHouseholdView()
         } else if onboardingDoneForUser {
-            HomeShellView(answers: answers, onRestart: restartOnboarding, onSignOut: signOut)
+            HomeShellView(answers: answers, onRestart: restartOnboarding, onSignOut: signOut, onDeleteAccount: deleteAccount)
         } else {
             OnboardingFlow(answers: answers) {
                 onboardingComplete = true
@@ -90,13 +90,6 @@ struct ContentView: View {
             household.reset()
             return
         }
-        if household.householdID != nil {
-            weekStore.remote = household
-            pointsStore.remote = household
-            await weekStore.syncRemote()
-            await pointsStore.syncRemote()
-            return
-        }
         showPreparing = false
         let flash = Task {
             try? await Task.sleep(for: .milliseconds(300))
@@ -105,13 +98,14 @@ struct ContentView: View {
             }
         }
         await household.ensure()
+        flash.cancel()
+        showPreparing = false
+        guard household.householdID != nil else { return }
         weekStore.remote = household
         pointsStore.remote = household
         await weekStore.syncRemote()
         await pointsStore.syncRemote()
         await household.startRealtime()
-        flash.cancel()
-        showPreparing = false
     }
 
     private func restartOnboarding() {
@@ -121,7 +115,22 @@ struct ContentView: View {
     }
 
     private func signOut() {
+        weekStore.remote = nil
+        pointsStore.remote = nil
+        household.reset()
         Task { await auth.signOut() }
+    }
+
+    private func deleteAccount() {
+        weekStore.remote = nil
+        pointsStore.remote = nil
+        Task {
+            try? await household.deleteAccount()
+            answers.reset()
+            onboardingComplete = false
+            onboardingUserID = ""
+            await auth.signOut()
+        }
     }
 }
 

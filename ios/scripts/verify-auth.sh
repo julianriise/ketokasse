@@ -71,6 +71,12 @@ if "ketokasse://join/" not in join_web:
     raise SystemExit("join page missing app deep link")
 if "Åpne i Ketokasse" not in join_web:
     raise SystemExit("join page missing CTA copy")
+if "delete_own_account" not in repo:
+    raise SystemExit("HouseholdRepository missing delete_own_account")
+if "Slett konto" not in settings:
+    raise SystemExit("Settings missing Slett konto")
+if "Er du sikker?" not in settings:
+    raise SystemExit("Settings missing delete confirmation")
 print("ok  auth gate, RPCs, QR share, stores, web join")
 PY
 pass "auth wiring"

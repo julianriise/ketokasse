@@ -31,7 +31,7 @@ struct AuthGateView: View {
     }
 
     private var householdReady: Bool {
-        household.householdID != nil
+        household.householdID != nil && household.lastError == nil
     }
 
     private var bubbleText: String {

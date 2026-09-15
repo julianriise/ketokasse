@@ -9,6 +9,7 @@ struct HomeShellView: View {
     @Bindable var answers: OnboardingState
     var onRestart: () -> Void
     var onSignOut: () -> Void = {}
+    var onDeleteAccount: () -> Void = {}
 
     @State private var cookingDish: Dish?
     @State private var page: Page = .today
@@ -48,6 +49,9 @@ struct HomeShellView: View {
             }, onSignOut: {
                 showSettings = false
                 onSignOut()
+            }, onDeleteAccount: {
+                showSettings = false
+                onDeleteAccount()
             })
         }
         .onChange(of: scenePhase) { _, phase in

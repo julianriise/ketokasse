@@ -58,19 +58,28 @@ final class HouseholdRepository {
 
     func ensure() async {
         isPreparing = true
-        lastError = nil
         defer { isPreparing = false }
         guard let client = KKSupabase.client else {
             lastError = "Mangler tilkobling til konto."
             return
         }
         do {
-            let id: UUID = try await client.rpc("ensure_own_household").execute().value
+            try await Self.waitForSession(client)
+            let response = try await client.rpc("ensure_own_household").execute()
+            let id = try Self.decodeUUID(from: response.data)
             householdID = id
-            try await refreshHousehold(id)
+            await refreshHouseholdSoft(id)
+            lastError = nil
         } catch {
-            lastError = "Koble til nett og prøv igjen."
+            lastError = Self.mapEnsure(error)
         }
+    }
+
+    func deleteAccount() async throws {
+        guard let client = KKSupabase.client else { throw HouseholdError.missingConfig }
+        try await Self.waitForSession(client)
+        try await client.rpc("delete_own_account").execute()
+        reset()
     }
 
     func liveInvite() async -> HouseholdInvite? {
@@ -253,6 +262,10 @@ final class HouseholdRepository {
         }
     }
 
+    private func refreshHouseholdSoft(_ id: UUID) async {
+        try? await refreshHousehold(id)
+    }
+
     private func refreshHousehold(_ id: UUID) async throws {
         guard let client = KKSupabase.client else { throw HouseholdError.missingConfig }
         let rows: [HouseholdRow] = try await client.from("households")
@@ -265,6 +278,42 @@ final class HouseholdRepository {
             name = row.name
             remotePoints = row.pointsTotal
         }
+    }
+
+    private static func waitForSession(_ client: SupabaseClient) async throws {
+        for attempt in 0..<8 {
+            if let session = try? await client.auth.session, !session.isExpired {
+                return
+            }
+            if attempt == 7 {
+                _ = try await client.auth.session
+                return
+            }
+            try await Task.sleep(for: .milliseconds(150))
+        }
+    }
+
+    private static func decodeUUID(from data: Data) throws -> UUID {
+        let raw = try JSONSerialization.jsonObject(with: data)
+        if let id = uuid(from: raw) { return id }
+        throw HouseholdError.message("Kunne ikke hente husholdning.")
+    }
+
+    private static func uuid(from raw: Any) -> UUID? {
+        if let string = raw as? String {
+            return UUID(uuidString: string)
+        }
+        if let dict = raw as? [String: Any] {
+            for key in ["ensure_own_household", "id"] {
+                if let string = dict[key] as? String, let id = UUID(uuidString: string) {
+                    return id
+                }
+            }
+        }
+        if let list = raw as? [Any], let first = list.first {
+            return uuid(from: first)
+        }
+        return nil
     }
 
     private static func decodeInvite(from data: Data) throws -> HouseholdInvite {
@@ -322,6 +371,25 @@ final class HouseholdRepository {
         }
         if text.isEmpty { return .message("Kunne ikke lage QR-kode.") }
         return .message(text)
+    }
+
+    private static func mapEnsure(_ error: Error) -> String {
+        if let existing = error as? HouseholdError {
+            return existing.errorDescription ?? "Kunne ikke hente husholdning."
+        }
+        if (error as NSError).domain == NSURLErrorDomain {
+            return HouseholdError.offline.errorDescription ?? "Koble til nett og prøv igjen."
+        }
+        let dumped = String(describing: error).lowercased()
+        if dumped.contains("not authenticated") || dumped.contains("session") {
+            return "Logg inn på nytt."
+        }
+        if dumped.contains("notconnected") || dumped.contains("offline") || dumped.contains("network") {
+            return HouseholdError.offline.errorDescription ?? "Koble til nett og prøv igjen."
+        }
+        let text = error.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.isEmpty { return "Kunne ikke hente husholdning." }
+        return text
     }
 
     private static func mapRedeem(_ error: Error) -> HouseholdError {
