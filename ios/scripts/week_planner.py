@@ -156,6 +156,28 @@ def assert_move_slot_behavior() -> None:
         raise SystemExit("same-slot move changed the plan")
 
 
+def assert_week_pager_stays_free_until_drag(week_text: str) -> None:
+    is_active = re.search(r"var isActive: Bool \{(?P<body>.*?)\n    \}", week_text, re.S)
+    if is_active is None:
+        raise SystemExit("WeekSlotDrag missing isActive")
+    body = is_active.group("body")
+    if "self != .inactive" in body or ".pressing, .dragging" in body or ".pressing,.dragging" in body:
+        raise SystemExit("WeekSlotDrag.isActive treats press as a lift and locks the home pager")
+    if ".dragging" not in body:
+        raise SystemExit("WeekSlotDrag.isActive must be true only while dragging")
+    if ".simultaneousGesture(slotGesture" not in week_text:
+        raise SystemExit("slotGesture must be simultaneous so TabView can page")
+    if re.search(r"\.gesture\(slotGesture", week_text):
+        raise SystemExit("exclusive .gesture(slotGesture) blocks TabView paging")
+    distance = re.search(r"DragGesture\(minimumDistance:\s*(\d+)", week_text)
+    if distance is None:
+        raise SystemExit("DragGesture must set minimumDistance")
+    if int(distance.group(1)) < 10:
+        raise SystemExit(
+            f"DragGesture minimumDistance {distance.group(1)} is too low for page swipe"
+        )
+
+
 def assert_week_reorder_contract(week_text: str, store_text: str) -> None:
     banned_week = {
         "editMode": "WeekPlannerView still has editMode",
@@ -172,6 +194,7 @@ def assert_week_reorder_contract(week_text: str, store_text: str) -> None:
             raise SystemExit(message)
     if "List {" in week_text or "List(" in week_text:
         raise SystemExit("WeekPlannerView still has List")
+    assert_week_pager_stays_free_until_drag(week_text)
     required_week = {
         "LongPressGesture": "WeekPlannerView missing LongPressGesture",
         "sequenced(before:": "WeekPlannerView missing sequenced drag",
