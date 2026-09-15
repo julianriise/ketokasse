@@ -8,11 +8,15 @@ struct HomeShellView: View {
 
     @Bindable var answers: OnboardingState
     var onRestart: () -> Void
+    var onSignOut: () -> Void = {}
 
     @State private var cookingDish: Dish?
     @State private var page: Page = .today
     @State private var showSettings = false
     @State private var weekBoardDragging = false
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(WeekStore.self) private var weekStore
+    @Environment(PointsStore.self) private var pointsStore
 
     var body: some View {
         TabView(selection: $page) {
@@ -41,7 +45,17 @@ struct HomeShellView: View {
             SettingsView(answers: answers, onRestart: {
                 showSettings = false
                 onRestart()
+            }, onSignOut: {
+                showSettings = false
+                onSignOut()
             })
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task {
+                await weekStore.syncRemote()
+                await pointsStore.syncRemote()
+            }
         }
     }
 }
@@ -126,7 +140,11 @@ private struct CookingCover: View {
 
     var body: some View {
         if let recipe = RecipeRegistry.recipe(forDishTitle: dish.title) {
-            CookingSessionView(recipe: recipe)
+            CookingSessionView(
+                recipe: recipe,
+                dishTitle: dish.title,
+                dayIndex: PlanWeekday.on(Date()).rawValue - 1
+            )
         } else {
             MissingRecipeView(title: dish.title)
         }
@@ -163,4 +181,5 @@ private struct MissingRecipeView: View {
     return HomeShellView(answers: answers, onRestart: {})
         .environment(WeekStore(defaults: UserDefaults(suiteName: "no.ketokasse.preview.home.week")!))
         .environment(PointsStore(defaults: UserDefaults(suiteName: "no.ketokasse.preview.home.points")!))
+        .environment(HouseholdRepository.preview)
 }

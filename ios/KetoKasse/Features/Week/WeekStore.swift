@@ -11,6 +11,7 @@ final class WeekStore {
     private var calendarWeekKey: String
     private var generation: UInt64
     private var lastFilledTitles: [String]
+    var remote: HouseholdRepository?
 
     var todayDish: Dish? {
         plan.dish(on: .on(Date()))
@@ -67,7 +68,28 @@ final class WeekStore {
         persist()
     }
 
+    func applyRemoteSlots(_ slots: [String?]) {
+        guard Self.isValidSlots(slots) else { return }
+        guard slots != plan.slots else { return }
+        plan = WeekPlan(seed: plan.seed, slots: slots)
+        persistLocal()
+    }
+
+    func syncRemote() async {
+        guard let remote else { return }
+        if let slots = await remote.fetchWeekSlots(), Self.isValidSlots(slots) {
+            applyRemoteSlots(slots)
+        } else {
+            await remote.upsertWeekPlan(plan.slots)
+        }
+    }
+
     private func persist() {
+        persistLocal()
+        pushRemote()
+    }
+
+    private func persistLocal() {
         let snapshot = Snapshot(
             calendarWeekKey: calendarWeekKey,
             generation: generation,
@@ -76,6 +98,21 @@ final class WeekStore {
             slots: plan.slots
         )
         defaults.set(try? JSONEncoder().encode(snapshot), forKey: Self.defaultsKey)
+    }
+
+    private func pushRemote() {
+        guard let remote else { return }
+        let slots = plan.slots
+        Task {
+            await remote.upsertWeekPlan(slots)
+        }
+    }
+
+    private static func isValidSlots(_ slots: [String?]) -> Bool {
+        guard slots.count == WeekPlan.dayCount else { return false }
+        let filled = slots.compactMap { $0 }
+        guard filled.count == WeekPlan.dinnerCount else { return false }
+        return filled.allSatisfy { DishPool.dish(titled: $0) != nil }
     }
 
     private static func load(from defaults: UserDefaults) -> Snapshot? {

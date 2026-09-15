@@ -74,10 +74,16 @@ final class CookingSession {
         }
     }
 
-    func commit(to store: PointsStore) {
+    func commit(to store: PointsStore, dishTitle: String? = nil, dayIndex: Int? = nil) {
         guard phase == .score, !didCommit else { return }
         didCommit = true
-        store.add(sessionPoints)
+        let cook: CookDraft?
+        if let dishTitle, let dayIndex {
+            cook = CookDraft(dishTitle: dishTitle, dayIndex: dayIndex, pointsAwarded: sessionPoints)
+        } else {
+            cook = nil
+        }
+        store.add(sessionPoints, cook: cook)
     }
 
     func points(in phase: RecipePhase) -> Int {

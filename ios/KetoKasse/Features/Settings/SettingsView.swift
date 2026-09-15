@@ -3,10 +3,12 @@ import SwiftUI
 struct SettingsView: View {
     @Bindable var answers: OnboardingState
     var onRestart: () -> Void
+    var onSignOut: () -> Void = {}
 
     @State private var draftName = ""
     @State private var draftRole: FamilyRole = .man
     @State private var confirmRestart = false
+    @State private var showShare = false
 
     private var canAddMember: Bool {
         !draftName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -15,6 +17,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                shareSection
                 householdSection
                 goalSection
                 allergiesSection
@@ -30,9 +33,35 @@ struct SettingsView: View {
             .confirmationDialog("Start på nytt?", isPresented: $confirmRestart, titleVisibility: .visible) {
                 Button("Start på nytt", role: .destructive, action: onRestart)
             }
+            .sheet(isPresented: $showShare) {
+                ShareHouseholdView()
+            }
         }
         .tint(KKColor.forest)
         .background(KKColor.white.ignoresSafeArea())
+    }
+
+    private var shareSection: some View {
+        Section {
+            Button {
+                showShare = true
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "qrcode")
+                        .font(KKFont.cta)
+                    Text("Del med partner")
+                        .font(KKFont.body)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(KKFont.cta)
+                        .foregroundStyle(KKColor.muted)
+                }
+                .foregroundStyle(KKColor.forest)
+            }
+            .accessibilityLabel("Del med partner")
+        } header: {
+            sectionHeader("Deling")
+        }
     }
 
     private var householdSection: some View {
@@ -173,6 +202,11 @@ struct SettingsView: View {
 
     private var appSection: some View {
         Section {
+            Button("Logg ut") {
+                onSignOut()
+            }
+            .font(KKFont.body)
+            .foregroundStyle(KKColor.ink)
             Button("Start på nytt", role: .destructive) {
                 confirmRestart = true
             }
@@ -259,4 +293,5 @@ private struct SettingCheckRow: View {
     answers.floor = 3
     answers.plan = .standard
     return SettingsView(answers: answers, onRestart: {})
+        .environment(HouseholdRepository.preview)
 }

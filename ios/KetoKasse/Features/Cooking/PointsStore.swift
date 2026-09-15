@@ -8,6 +8,7 @@ final class PointsStore {
 
     private let defaults: UserDefaults
     private(set) var total: Int
+    var remote: HouseholdRepository?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -18,10 +19,36 @@ final class PointsStore {
         }
     }
 
-    func add(_ amount: Int) {
-        guard amount > 0 else { return }
-        total += amount
+    func add(_ amount: Int, cook: CookDraft? = nil) {
+        if amount > 0 {
+            total += amount
+            persist()
+        } else if cook == nil {
+            return
+        }
+        pushRemote(cook: cook)
+    }
+
+    func applyRemote(_ value: Int) {
+        let next = max(0, value)
+        guard next != total else { return }
+        total = next
         persist()
+    }
+
+    func syncRemote() async {
+        guard let remote else { return }
+        if let value = await remote.fetchPoints() {
+            applyRemote(value)
+        }
+    }
+
+    private func pushRemote(cook: CookDraft?) {
+        guard let remote else { return }
+        let snapshot = total
+        Task {
+            await remote.pushPoints(snapshot, cook: cook)
+        }
     }
 
     private func persist() {

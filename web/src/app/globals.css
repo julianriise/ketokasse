@@ -387,6 +387,59 @@ body {
   letter-spacing: -0.04em;
 }
 
+.kk-join-page {
+  min-height: 100dvh;
+  background: var(--kk-white);
+}
+
+.kk-join {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.kk-join-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.kk-join-mascot {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 1.25rem;
+}
+
+.kk-join-heading {
+  margin: 0;
+  color: var(--kk-ink);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.kk-join-body,
+.kk-join-hint {
+  margin: 0;
+  color: var(--kk-muted);
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.kk-join-cta {
+  margin-top: 0.5rem;
+  min-width: 12rem;
+}
+
+.kk-join-hint {
+  max-width: 22rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .kk-cta-pill:active {
     border-bottom-width: 4px;

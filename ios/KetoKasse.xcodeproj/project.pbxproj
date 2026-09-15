@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		000000000000000000000022 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 000000000000000000000021 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000006 /* KetoKasse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KetoKasse.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000023 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = KetoKasse/Config/Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -26,6 +31,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Config/Secrets.example.xcconfig,
+				Config/Secrets.local.xcconfig,
+				Config/Secrets.xcconfig,
 			);
 			target = 000000000000000000000005 /* KetoKasse */;
 		};
@@ -36,6 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				000000000000000000000022 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,6 +55,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000003 /* KetoKasse */,
+				000000000000000000000023 /* Secrets.xcconfig */,
 				000000000000000000000004 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -77,6 +87,9 @@
 				000000000000000000000003 /* KetoKasse */,
 			);
 			name = KetoKasse;
+			packageProductDependencies = (
+				000000000000000000000021 /* Supabase */,
+			);
 			productName = KetoKasse;
 			productReference = 000000000000000000000006 /* KetoKasse.app */;
 			productType = "com.apple.product-type.application";
@@ -104,6 +117,9 @@
 			);
 			mainGroup = 000000000000000000000002;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				000000000000000000000020 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 000000000000000000000004 /* Products */;
 			projectDirPath = "";
@@ -192,6 +208,7 @@
 		};
 		000000000000000000000012 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 000000000000000000000023 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -223,6 +240,7 @@
 		};
 		000000000000000000000013 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 000000000000000000000023 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -274,6 +292,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		000000000000000000000020 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.31.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		000000000000000000000021 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 000000000000000000000020 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 000000000000000000000001 /* Project object */;
 }

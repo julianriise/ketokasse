@@ -2,14 +2,18 @@ import SwiftUI
 
 struct CookingSessionView: View {
     let recipe: Recipe
+    var dishTitle: String
+    var dayIndex: Int
 
     @Environment(PointsStore.self) private var points
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var session: CookingSession
 
-    init(recipe: Recipe) {
+    init(recipe: Recipe, dishTitle: String? = nil, dayIndex: Int? = nil) {
         self.recipe = recipe
+        self.dishTitle = dishTitle ?? recipe.dishTitle
+        self.dayIndex = dayIndex ?? max(0, PlanWeekday.on(Date()).rawValue - 1)
         _session = State(initialValue: CookingSession(recipe: recipe))
     }
 
@@ -74,7 +78,7 @@ struct CookingSessionView: View {
                 session: session,
                 onDone: { dismiss() }
             )
-            .onAppear { session.commit(to: points) }
+            .onAppear { session.commit(to: points, dishTitle: dishTitle, dayIndex: dayIndex) }
         }
     }
 
