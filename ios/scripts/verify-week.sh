@@ -11,6 +11,7 @@ test -f "$APP/Features/Week/WeekPlanner.swift" || fail "missing WeekPlanner.swif
 test -f "$APP/Features/Week/WeekStore.swift" || fail "missing WeekStore.swift"
 test -f "$APP/Features/Home/HomeView.swift" || fail "missing HomeView.swift"
 test -f "$APP/Features/Home/WeekPlannerView.swift" || fail "missing WeekPlannerView.swift"
+test -f "$APP/DesignSystem/Motion.swift" || fail "missing Motion.swift"
 ! test -e "$APP/Features/Home/HomePlaceholderView.swift" || fail "HomePlaceholderView.swift must be gone"
 pass "files exist"
 
@@ -24,6 +25,7 @@ from week_planner import (
     PIZZA_TITLE,
     assert_move_slot_behavior,
     assert_week_reorder_contract,
+    assert_week_thumb_swipe_zone,
     filled_titles,
     generate,
     parse_pizza_title,
@@ -36,6 +38,7 @@ planner_text = (root / "KetoKasse/Features/Week/WeekPlanner.swift").read_text()
 store_text = (root / "KetoKasse/Features/Week/WeekStore.swift").read_text()
 home_text = (root / "KetoKasse/Features/Home/HomeView.swift").read_text()
 week_text = (root / "KetoKasse/Features/Home/WeekPlannerView.swift").read_text()
+motion_text = (root / "KetoKasse/DesignSystem/Motion.swift").read_text()
 content = (root / "KetoKasse/ContentView.swift").read_text()
 
 EXPECTED_TITLES = [
@@ -78,6 +81,7 @@ if "scrollDisabled(weekBoardDragging)" not in home_text:
 if "WeekBoardDragActiveKey" not in home_text:
     raise SystemExit("Home pager must read WeekBoardDragActiveKey")
 assert_week_reorder_contract(week_text, store_text)
+assert_week_thumb_swipe_zone(week_text, motion_text)
 assert_move_slot_behavior()
 
 by_title = {dish.title: dish for dish in pool}

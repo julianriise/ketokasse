@@ -38,26 +38,29 @@ struct WeekPlannerView: View {
                 .tracking(KKFont.headlineTracking)
                 .foregroundStyle(KKColor.ink)
                 .padding(.top, 8)
-            Text("Hold en middag og dra den til en annen dag.")
+                .accessibilityHint("Hold en middag og dra den til en annen dag.")
+            Text("Hold og dra")
                 .font(KKFont.body)
                 .foregroundStyle(KKColor.muted)
-                .padding(.top, 8)
-            ScrollView {
-                board
-                    .padding(.top, 16)
-                    .padding(.bottom, 8)
-            }
-            .scrollDisabled(drag.isActive)
-            .scrollBounceBehavior(.basedOnSize)
-            .scrollIndicators(.hidden)
+                .padding(.top, 4)
+                .accessibilityHidden(true)
+            board
+                .padding(.top, 12)
             GetStartedButton(title: "Simuler ny uke", action: {
                 withAnimation(KKMotion.snappy(reduceMotion)) {
                     store.simulateNewWeek()
                 }
             })
-            .padding(.bottom, 56)
+            .padding(.top, 16)
+            Spacer(minLength: 128)
+            Text("Sveip til hjem")
+                .font(KKFont.body)
+                .foregroundStyle(KKColor.muted)
+                .frame(maxWidth: .infinity)
+                .allowsHitTesting(false)
         }
         .padding(.horizontal, 24)
+        .padding(.bottom, 56)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(KKColor.white.ignoresSafeArea())
         .preference(key: WeekBoardDragActiveKey.self, value: drag.isActive)
@@ -284,7 +287,7 @@ private struct WeekDayChip: View {
         Text(day.shortLabel)
             .font(KKFont.cta)
             .foregroundStyle(highlighted ? KKColor.lime : KKColor.forest)
-            .frame(width: 44, height: 44)
+            .frame(width: 36, height: 36)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(highlighted ? KKColor.forest : KKColor.mint)
@@ -314,9 +317,9 @@ private struct WeekDishTile: View {
         Text(title ?? "Fri")
             .font(KKFont.body)
             .foregroundStyle(title == nil ? KKColor.muted : KKColor.ink)
-            .lineLimit(2)
-            .minimumScaleFactor(0.85)
-            .padding(.horizontal, 14)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .padding(.horizontal, 12)
             .frame(
                 maxWidth: .infinity,
                 minHeight: KKMotion.weekRowHeight,
