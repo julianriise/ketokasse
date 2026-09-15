@@ -327,4 +327,74 @@ for path in root_swift:
 PY
 pass "copy, wiring, prices last, no StoreKit"
 
+python3 - "$APP" <<'PY' || fail "mascot pose check"
+import json, pathlib, re, sys
+app = pathlib.Path(sys.argv[1])
+assets = app / "Assets.xcassets"
+sets = {
+    "MascotHello": "mascot-hello.svg",
+    "MascotCoach": "mascot-coach.svg",
+    "MascotCelebrate": "mascot-celebrate.svg",
+    "MascotThink": "mascot-think.svg",
+}
+for name, svg in sets.items():
+    folder = assets / f"{name}.imageset"
+    svg_path = folder / svg
+    contents_path = folder / "Contents.json"
+    if not svg_path.is_file():
+        raise SystemExit(f"missing {svg_path.relative_to(app)}")
+    if not contents_path.is_file():
+        raise SystemExit(f"missing {contents_path.relative_to(app)}")
+    data = json.loads(contents_path.read_text())
+    props = data.get("properties") or {}
+    if props.get("preserves-vector-representation") is not True:
+        raise SystemExit(f"{name} Contents.json missing preserves-vector-representation")
+    if props.get("template-rendering-intent") != "original":
+        raise SystemExit(f"{name} Contents.json template-rendering-intent is not original")
+    images = data.get("images") or []
+    if not any(img.get("filename") == svg for img in images):
+        raise SystemExit(f"{name} Contents.json does not reference {svg}")
+
+mascot = (app / "Features/Welcome/MascotView.swift").read_text()
+for needle in [
+    "enum MascotPose",
+    "case hello",
+    "case coach",
+    "case celebrate",
+    "case think",
+    "Image(pose.imageName)",
+    ".resizable()",
+    "aspectRatio(contentMode: .fit)",
+]:
+    if needle not in mascot:
+        raise SystemExit(f"MascotView.swift missing {needle!r}")
+for dead in ["MascotDrawing", "SproutLeaf", "CrateBody", "CrateFace"]:
+    if dead in mascot:
+        raise SystemExit(f"MascotView.swift still has {dead!r}")
+
+welcome = (app / "Features/Welcome/WelcomeView.swift").read_text()
+if "pose: .hello" not in welcome:
+    raise SystemExit("WelcomeView missing pose: .hello")
+
+chrome = (app / "Features/Onboarding/OnboardingChrome.swift").read_text()
+if "pose: MascotPose = .coach" not in chrome:
+    raise SystemExit("OnboardingChrome missing pose: MascotPose = .coach")
+if "MascotView(" not in chrome:
+    raise SystemExit("OnboardingChrome missing MascotView")
+if "pose: pose" not in chrome:
+    raise SystemExit("OnboardingChrome does not pass pose into MascotView")
+
+pricing = (app / "Features/Onboarding/PricingView.swift").read_text()
+if "pose: .celebrate" not in pricing:
+    raise SystemExit("PricingView missing pose: .celebrate")
+
+ask = (app / "Features/Onboarding/AskViews.swift").read_text()
+allergies = re.search(r"struct AllergiesAskView.*?(?=\nstruct |\Z)", ask, re.S)
+if not allergies:
+    raise SystemExit("AllergiesAskView missing")
+if "pose: .think" not in allergies.group(0):
+    raise SystemExit("AllergiesAskView missing pose: .think")
+PY
+pass "mascot poses and assets"
+
 echo "onboarding checks passed"

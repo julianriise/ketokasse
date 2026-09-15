@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingChrome<Content: View>: View {
     var step: OnboardingStep
     var bubbleText: String
+    var pose: MascotPose = .coach
     var support: String? = nil
     var ctaTitle: String
     var ctaEnabled: Bool = true
@@ -69,7 +70,7 @@ struct OnboardingChrome<Content: View>: View {
     private var coach: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center, spacing: 8) {
-                OnboardingCoachMascot()
+                OnboardingCoachMascot(pose: pose)
                 SpeechBubbleView(text: bubbleText, tail: .leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -135,11 +136,12 @@ struct OnboardingProgressBar: View {
 }
 
 private struct OnboardingCoachMascot: View {
+    var pose: MascotPose
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isBobbing = false
 
     var body: some View {
-        MascotView(hopToken: 0, isBobbing: isBobbing, size: KKMotion.mascotCoach)
+        MascotView(hopToken: 0, isBobbing: isBobbing, pose: pose, size: KKMotion.mascotCoach)
             .shadow(color: KKColor.ink.opacity(0.08), radius: 8, y: 4)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("KetoKasse-maskot")

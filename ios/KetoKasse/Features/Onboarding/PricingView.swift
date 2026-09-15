@@ -8,6 +8,7 @@ struct PricingView: View {
         OnboardingChrome(
             step: .pricing,
             bubbleText: "Sånn! Velg kvalitet.",
+            pose: .celebrate,
             support: "5 måltider for 2. Samme kutt. Bedre råvarer, ikke mer i lomma.",
             ctaTitle: "FERDIG",
             ctaEnabled: answers.canContinue(from: .pricing),

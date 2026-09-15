@@ -35,6 +35,7 @@ struct AllergiesAskView: View {
         OnboardingChrome(
             step: .allergies,
             bubbleText: "Allergier",
+            pose: .think,
             support: "Velg det som gjelder, eller Ingen.",
             ctaTitle: "FORTSETT",
             ctaEnabled: answers.canContinue(from: .allergies),
