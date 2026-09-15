@@ -33,7 +33,11 @@ struct OnboardingFlow: View {
         case .household:
             HouseholdAskView(answers: answers, onContinue: { goNext(from: .household) })
         case .pricing:
-            PricingView(answers: answers, onFinished: { goNext(from: .pricing) })
+            PricingView(answers: answers, onContinue: { goNext(from: .pricing) })
+        case .start:
+            WelcomeView(copy: .ready, pose: .celebrate, onContinue: onFinished)
+                .navigationBarBackButtonHidden(true)
+                .toolbar(.hidden, for: .navigationBar)
         }
     }
 

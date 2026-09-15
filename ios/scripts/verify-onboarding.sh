@@ -29,7 +29,7 @@ cases = re.findall(r"case (\w+)", block.group(0))
 print(" ".join(cases))
 PY
 )"
-[ "$STEPS" = "cooking goal allergies address household pricing" ] || fail "step order is '$STEPS'"
+[ "$STEPS" = "cooking goal allergies address household pricing start" ] || fail "step order is '$STEPS'"
 pass "step order $STEPS"
 
 python3 - "$APP" <<'PY' || fail "copy or wiring check"
@@ -60,6 +60,10 @@ if "KKFont.headline" in welcome:
 flow = read("Features/Onboarding/OnboardingFlow.swift")
 if "WelcomeView(onContinue:" not in flow:
     raise SystemExit("OnboardingFlow does not start at Welcome")
+if "copy: .ready" not in flow or "pose: .celebrate" not in flow:
+    raise SystemExit("OnboardingFlow missing ready screen after pricing")
+if "case .start:" not in flow:
+    raise SystemExit("OnboardingFlow missing .start destination")
 if "path.append" not in flow:
     raise SystemExit("OnboardingFlow does not push steps")
 for dead in ["MealPlanWeekView", "NameAskView", "DeliveryDayAskView", ".mealPlan", ".deliveryDay", ".name"]:
@@ -213,7 +217,7 @@ if "addFamilyMember(name:" not in state:
 can_continue = re.search(r"func canContinue.*", state, re.S)
 if not can_continue:
     raise SystemExit("canContinue missing")
-for step in ["cooking", "goal", "allergies", "address", "household", "pricing"]:
+for step in ["cooking", "goal", "allergies", "address", "household", "pricing", "start"]:
     if f"case .{step}" not in can_continue.group(0):
         raise SystemExit(f"canContinue missing .{step}")
 household_gate = re.search(r"case \.household:\s*(.*?)case \.pricing", can_continue.group(0), re.S)
@@ -227,7 +231,7 @@ if "personality" in household_gate.group(1):
 pricing = read("Features/Onboarding/PricingView.swift")
 for needle in [
     "5 måltider for 2",
-    "FERDIG",
+    "FORTSETT",
     "Samme kutt",
     "ikke mer i lomma",
     'bubbleText: "Sånn! Velg kvalitet."',
@@ -332,28 +336,32 @@ import json, pathlib, re, sys
 app = pathlib.Path(sys.argv[1])
 assets = app / "Assets.xcassets"
 sets = {
-    "MascotHello": "mascot-hello.svg",
-    "MascotCoach": "mascot-coach.svg",
-    "MascotCelebrate": "mascot-celebrate.svg",
-    "MascotThink": "mascot-think.svg",
+    "MascotHello": "mascot-hello.png",
+    "MascotCoach": "mascot-coach.png",
+    "MascotCelebrate": "mascot-celebrate.png",
+    "MascotThink": "mascot-think.png",
 }
-for name, svg in sets.items():
+for name, png in sets.items():
     folder = assets / f"{name}.imageset"
-    svg_path = folder / svg
+    png_path = folder / png
     contents_path = folder / "Contents.json"
-    if not svg_path.is_file():
-        raise SystemExit(f"missing {svg_path.relative_to(app)}")
+    if not png_path.is_file():
+        raise SystemExit(f"missing {png_path.relative_to(app)}")
+    if png_path.suffix.lower() != ".png":
+        raise SystemExit(f"{name} is not a PNG")
+    if list(folder.glob("*.svg")):
+        raise SystemExit(f"{name} still has SVG stand-ins")
     if not contents_path.is_file():
         raise SystemExit(f"missing {contents_path.relative_to(app)}")
     data = json.loads(contents_path.read_text())
     props = data.get("properties") or {}
-    if props.get("preserves-vector-representation") is not True:
-        raise SystemExit(f"{name} Contents.json missing preserves-vector-representation")
+    if props.get("preserves-vector-representation") is True:
+        raise SystemExit(f"{name} Contents.json still preserves vector representation")
     if props.get("template-rendering-intent") != "original":
         raise SystemExit(f"{name} Contents.json template-rendering-intent is not original")
     images = data.get("images") or []
-    if not any(img.get("filename") == svg for img in images):
-        raise SystemExit(f"{name} Contents.json does not reference {svg}")
+    if not any(img.get("filename") == png for img in images):
+        raise SystemExit(f"{name} Contents.json does not reference {png}")
 
 mascot = (app / "Features/Welcome/MascotView.swift").read_text()
 for needle in [
@@ -373,8 +381,12 @@ for dead in ["MascotDrawing", "SproutLeaf", "CrateBody", "CrateFace"]:
         raise SystemExit(f"MascotView.swift still has {dead!r}")
 
 welcome = (app / "Features/Welcome/WelcomeView.swift").read_text()
-if "pose: .hello" not in welcome:
-    raise SystemExit("WelcomeView missing pose: .hello")
+if "var pose: MascotPose = .hello" not in welcome:
+    raise SystemExit("WelcomeView missing pose: MascotPose = .hello")
+if "La oss komme i gang med middagen!" not in welcome:
+    raise SystemExit("WelcomeView missing ready headline")
+if "static let ready" not in welcome:
+    raise SystemExit("WelcomeView missing ready copy")
 
 chrome = (app / "Features/Onboarding/OnboardingChrome.swift").read_text()
 if "pose: MascotPose = .coach" not in chrome:
