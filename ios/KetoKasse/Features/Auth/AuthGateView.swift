@@ -26,8 +26,8 @@ struct AuthGateView: View {
         email.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private var canSend: Bool {
-        AuthService.isValidEmail(trimmedEmail) && !isSending && cooldown == 0
+    private func canSend(lockRemaining: TimeInterval) -> Bool {
+        AuthService.isValidEmail(trimmedEmail) && !isSending && cooldown == 0 && lockRemaining <= 0
     }
 
     private var bubbleText: String {
@@ -75,7 +75,10 @@ struct AuthGateView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             .scrollDismissesKeyboard(.interactively)
-            footer
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                let lockRemaining = auth.emailLockRemaining(at: context.date)
+                footer(lockRemaining: lockRemaining, now: context.date)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(KKColor.white.ignoresSafeArea())
@@ -160,18 +163,20 @@ struct AuthGateView: View {
         }
     }
 
-    private var footer: some View {
-        VStack(spacing: 0) {
+    private func footer(lockRemaining: TimeInterval, now: Date) -> some View {
+        let locked = lockRemaining > 0
+        return VStack(spacing: 0) {
             Rectangle()
                 .fill(KKColor.line)
                 .frame(height: 1)
                 .accessibilityHidden(true)
             VStack(spacing: 12) {
                 GetStartedButton(
-                    title: primaryTitle,
-                    isEnabled: primaryEnabled,
+                    title: primaryTitle(lockRemaining: lockRemaining),
+                    isEnabled: primaryEnabled(lockRemaining: lockRemaining),
                     action: primaryAction
                 )
+                .accessibilityValue(locked ? lockTitle(lockRemaining) : "")
                 if step == .inbox {
                     Button("Bytt e-post", action: changeEmail)
                         .font(KKFont.body)
@@ -185,16 +190,25 @@ struct AuthGateView: View {
                     .font(KKFont.body)
                     .foregroundStyle(KKColor.muted)
                 }
-                Text(footerCaption)
+                Text(footerCaption(lockRemaining: lockRemaining))
                     .font(KKFont.body)
                     .foregroundStyle(KKColor.muted)
                     .multilineTextAlignment(.center)
+                    .monospacedDigit()
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)
             .padding(.bottom, 24)
         }
         .background(KKColor.white)
+        .onChange(of: locked) { _, isLocked in
+            if !isLocked {
+                auth.clearEmailRateLimitIfExpired(at: now)
+                if bubbleOverride == AuthFlowError.rateLimited.errorDescription {
+                    bubbleOverride = nil
+                }
+            }
+        }
     }
 
     private var mascotPose: MascotPose {
@@ -205,29 +219,42 @@ struct AuthGateView: View {
         }
     }
 
-    private var primaryTitle: String {
+    private func primaryTitle(lockRemaining: TimeInterval) -> String {
+        if lockRemaining > 0 {
+            return lockTitle(lockRemaining)
+        }
         switch step {
-        case .email: "Send lenke"
-        case .inbox: "Send på nytt"
-        case .ready: "Prøv igjen"
+        case .email: return "Send lenke"
+        case .inbox: return "Send på nytt"
+        case .ready: return "Prøv igjen"
         }
     }
 
-    private var primaryEnabled: Bool {
+    private func primaryEnabled(lockRemaining: TimeInterval) -> Bool {
         switch step {
-        case .email, .inbox: canSend
+        case .email, .inbox: canSend(lockRemaining: lockRemaining)
         case .ready: household.lastError != nil
         }
     }
 
-    private var footerCaption: String {
+    private func footerCaption(lockRemaining: TimeInterval) -> String {
         if step == .ready {
             return "Vi gjør klar husholdningen."
+        }
+        if lockRemaining > 0 {
+            return "Maks to e-poster i timen. Knappen åpner når tiden er ute."
         }
         if cooldown > 0 {
             return cooldownLabel
         }
         return "Ingen passord. Åpne lenken på denne telefonen."
+    }
+
+    private func lockTitle(_ remaining: TimeInterval) -> String {
+        let total = max(0, Int(remaining.rounded(.up)))
+        let minutes = total / 60
+        let seconds = total % 60
+        return String(format: "Vent %d:%02d", minutes, seconds)
     }
 
     private func primaryAction() {
@@ -254,7 +281,7 @@ struct AuthGateView: View {
             return
         }
         guard !isSending else { return }
-        if cooldown > 0 { return }
+        if cooldown > 0 || auth.emailLockRemaining() > 0 { return }
         fieldError = nil
         bubbleOverride = nil
         hopToken += 1
@@ -269,7 +296,6 @@ struct AuthGateView: View {
             } catch {
                 let mapped = AuthService.mapSendError(error)
                 if mapped == .rateLimited {
-                    applyStoredRateLimit()
                     bubbleOverride = mapped.errorDescription
                 } else if mapped == .invalidEmail {
                     fieldError = mapped.errorDescription
@@ -290,9 +316,7 @@ struct AuthGateView: View {
     }
 
     private func applyStoredRateLimit() {
-        let remaining = Int(auth.emailRateLimitRemaining.rounded(.up))
-        guard remaining > 0 else { return }
-        cooldown = remaining
+        guard auth.emailLockRemaining() > 0 else { return }
         bubbleOverride = AuthFlowError.rateLimited.errorDescription
     }
 

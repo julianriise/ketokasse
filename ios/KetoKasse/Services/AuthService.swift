@@ -26,11 +26,18 @@ final class AuthService {
     var needsHandoff = false
 
     private static let emailRateLimitUntilKey = "kk.auth.emailRateLimitUntil"
+    private(set) var emailRateLimitUntil: Date?
 
-    var emailRateLimitRemaining: TimeInterval {
-        let until = UserDefaults.standard.double(forKey: Self.emailRateLimitUntilKey)
-        guard until > 0 else { return 0 }
-        return max(0, until - Date().timeIntervalSince1970)
+    init() {
+        let raw = UserDefaults.standard.double(forKey: Self.emailRateLimitUntilKey)
+        if raw > Date().timeIntervalSince1970 {
+            emailRateLimitUntil = Date(timeIntervalSince1970: raw)
+        }
+    }
+
+    func emailLockRemaining(at now: Date = .now) -> TimeInterval {
+        guard let emailRateLimitUntil else { return 0 }
+        return max(0, emailRateLimitUntil.timeIntervalSince(now))
     }
 
     var userID: UUID? { session?.user.id }
@@ -63,7 +70,7 @@ final class AuthService {
     }
 
     func sendMagicLink(email: String) async throws {
-        guard emailRateLimitRemaining == 0 else { throw AuthFlowError.rateLimited }
+        guard emailLockRemaining() == 0 else { throw AuthFlowError.rateLimited }
         guard let client = KKSupabase.client else { throw AuthFlowError.missingConfig }
         do {
             try await client.auth.signInWithOTP(
@@ -81,7 +88,14 @@ final class AuthService {
 
     func markEmailRateLimited(for interval: TimeInterval = 3600) {
         let until = Date().addingTimeInterval(interval)
+        emailRateLimitUntil = until
         UserDefaults.standard.set(until.timeIntervalSince1970, forKey: Self.emailRateLimitUntilKey)
+    }
+
+    func clearEmailRateLimitIfExpired(at now: Date = .now) {
+        guard let emailRateLimitUntil, emailRateLimitUntil <= now else { return }
+        self.emailRateLimitUntil = nil
+        UserDefaults.standard.removeObject(forKey: Self.emailRateLimitUntilKey)
     }
 
     func handleOpenURL(_ url: URL) async {
