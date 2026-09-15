@@ -52,7 +52,9 @@ struct ContentView: View {
                     bubbleText: household.lastError ?? "Koble til nett og prøv igjen.",
                     pose: .think,
                     ctaTitle: "Prøv igjen",
-                    action: { Task { await bootstrapHousehold() } }
+                    secondaryTitle: "Logg ut",
+                    action: { Task { await bootstrapHousehold() } },
+                    secondaryAction: signOut
                 ) {
                     EmptyView()
                 }
@@ -83,13 +85,14 @@ struct ContentView: View {
     }
 
     private func bootstrapHousehold() async {
-        guard auth.phase == .signedIn else {
+        if auth.phase == .signedOut {
             showPreparing = false
             weekStore.remote = nil
             pointsStore.remote = nil
             household.reset()
             return
         }
+        guard auth.phase == .signedIn else { return }
         showPreparing = false
         let flash = Task {
             try? await Task.sleep(for: .milliseconds(300))

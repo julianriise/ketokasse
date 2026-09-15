@@ -65,7 +65,7 @@ final class HouseholdRepository {
         }
         do {
             try await Self.waitForSession(client)
-            let response = try await client.rpc("ensure_own_household").execute()
+            let response: PostgrestResponse<Void> = try await client.rpc("ensure_own_household").execute()
             let id = try Self.decodeUUID(from: response.data)
             householdID = id
             await refreshHouseholdSoft(id)
@@ -294,8 +294,22 @@ final class HouseholdRepository {
     }
 
     private static func decodeUUID(from data: Data) throws -> UUID {
-        let raw = try JSONSerialization.jsonObject(with: data)
-        if let id = uuid(from: raw) { return id }
+        if let id = try? JSONDecoder().decode(UUID.self, from: data) { return id }
+        if let string = try? JSONDecoder().decode(String.self, from: data),
+           let id = UUID(uuidString: string) {
+            return id
+        }
+        if let raw = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]),
+           let id = uuid(from: raw) {
+            return id
+        }
+        if let text = String(data: data, encoding: .utf8) {
+            let stripped = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                .replacingOccurrences(of: "\"", with: "")
+                .replacingOccurrences(of: "[", with: "")
+                .replacingOccurrences(of: "]", with: "")
+            if let id = UUID(uuidString: stripped) { return id }
+        }
         throw HouseholdError.message("Kunne ikke hente husholdning.")
     }
 

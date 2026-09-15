@@ -185,6 +185,14 @@ struct AuthGateView: View {
                         .font(KKFont.body)
                         .foregroundStyle(KKColor.muted)
                 }
+                if step == .ready, household.lastError != nil {
+                    Button("Logg ut") {
+                        household.reset()
+                        Task { await auth.signOut() }
+                    }
+                    .font(KKFont.body)
+                    .foregroundStyle(KKColor.muted)
+                }
                 Text(footerCaption)
                     .font(KKFont.body)
                     .foregroundStyle(KKColor.muted)
