@@ -51,53 +51,6 @@ struct OnboardingFlow: View {
     }
 }
 
-struct OnboardingChrome<Content: View>: View {
-    var title: String
-    var support: String? = nil
-    var ctaTitle: String
-    var ctaEnabled: Bool = true
-    var action: () -> Void
-    @ViewBuilder var content: () -> Content
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(title)
-                    .font(KKFont.headline)
-                    .tracking(KKFont.headlineTracking)
-                    .foregroundStyle(KKColor.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let support {
-                    Text(support)
-                        .font(KKFont.body)
-                        .foregroundStyle(KKColor.muted)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                content()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 24)
-            .padding(.top, 8)
-            .padding(.bottom, 24)
-        }
-        .scrollBounceBehavior(.basedOnSize)
-        .scrollIndicators(.hidden)
-        .scrollDismissesKeyboard(.interactively)
-        .safeAreaInset(edge: .bottom) {
-            GetStartedButton(title: ctaTitle, isEnabled: ctaEnabled, action: action)
-                .padding(.horizontal, 24)
-                .padding(.top, 8)
-                .padding(.bottom, 24)
-                .background(KKColor.white)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(KKColor.white.ignoresSafeArea())
-        .navigationTitle("")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(KKColor.white, for: .navigationBar)
-    }
-}
-
 #Preview {
     OnboardingFlow(answers: OnboardingState(), onFinished: {})
 }

@@ -6,7 +6,6 @@ struct CookingFunView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var momentIndex = 0
     @State private var hopToken = 0
-    @State private var isBobbing = false
 
     private let moments: [CookingMoment] = [
         CookingMoment(title: "Hakk grønnsakene", symbol: "carrot.fill"),
@@ -16,15 +15,12 @@ struct CookingFunView: View {
 
     var body: some View {
         OnboardingChrome(
-            title: "Matlaging skal være gøy",
+            step: .cooking,
+            bubbleText: "Matlaging skal være gøy",
             support: "Hakk, rør og stek.",
             ctaTitle: "FORTSETT",
             action: onContinue
         ) {
-            mascot
-                .padding(.top, 8)
-                .frame(maxWidth: .infinity)
-
             VStack(spacing: 10) {
                 ForEach(moments) { moment in
                     momentRow(moment)
@@ -33,20 +29,6 @@ struct CookingFunView: View {
             .padding(.top, 8)
         }
         .sensoryFeedback(.impact(weight: .light), trigger: hopToken)
-        .onAppear { startBob() }
-    }
-
-    private var mascot: some View {
-        ZStack {
-            Circle()
-                .fill(KKColor.sky)
-                .frame(width: KKMotion.skyCircle, height: KKMotion.skyCircle)
-            MascotView(hopToken: hopToken, isBobbing: isBobbing)
-        }
-        .scaleEffect(160 / KKMotion.skyCircle)
-        .frame(width: 160, height: 160)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("KetoKasse-maskot")
     }
 
     private func momentRow(_ moment: CookingMoment) -> some View {
@@ -98,11 +80,6 @@ struct CookingFunView: View {
                 momentIndex = index
             }
         }
-    }
-
-    private func startBob() {
-        guard !reduceMotion else { return }
-        isBobbing = true
     }
 }
 

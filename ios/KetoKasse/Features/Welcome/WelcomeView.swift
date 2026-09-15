@@ -1,17 +1,5 @@
 import SwiftUI
 
-struct WelcomeCopy: Equatable, Sendable {
-    var headline: String
-    var cta: String
-    var footer: String
-
-    static let bokmal = WelcomeCopy(
-        headline: "Den gøyeste måten å spise keto på",
-        cta: "KOM I GANG",
-        footer: "Ingen binding · Avslutt når som helst"
-    )
-}
-
 struct WelcomeView: View {
     var copy: WelcomeCopy = .bokmal
     var onContinue: () -> Void = {}
@@ -22,39 +10,26 @@ struct WelcomeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer(minLength: 24)
-            mascot
-            Text(copy.headline)
-                .font(KKFont.headline)
-                .tracking(KKFont.headlineTracking)
-                .foregroundStyle(KKColor.ink)
-                .multilineTextAlignment(.center)
-                .padding(.top, 12)
-            GetStartedButton(title: copy.cta, action: hop)
-                .padding(.top, 32)
-            Text(copy.footer)
-                .font(KKFont.body)
-                .foregroundStyle(KKColor.muted)
-                .multilineTextAlignment(.center)
-                .padding(.top, 16)
-            Spacer(minLength: 24)
+            Spacer(minLength: 16)
+            VStack(spacing: 8) {
+                SpeechBubbleView(text: copy.headline, tail: .bottom)
+                    .padding(.horizontal, 32)
+                MascotView(hopToken: hopToken, isBobbing: isBobbing, size: KKMotion.mascotHero)
+                    .shadow(color: KKColor.ink.opacity(0.10), radius: 18, y: 10)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("KetoKasse-maskot")
+            }
+            Spacer(minLength: 16)
+            OnboardingStickyFooter(
+                title: copy.cta,
+                caption: copy.footer,
+                action: hop
+            )
         }
-        .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(KKColor.white.ignoresSafeArea())
         .sensoryFeedback(.impact(weight: .light), trigger: hopToken)
         .onAppear { startBob() }
-    }
-
-    private var mascot: some View {
-        ZStack {
-            Circle()
-                .fill(KKColor.sky)
-                .frame(width: KKMotion.skyCircle, height: KKMotion.skyCircle)
-            MascotView(hopToken: hopToken, isBobbing: isBobbing)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("KetoKasse-maskot")
     }
 
     private func hop() {
@@ -66,6 +41,18 @@ struct WelcomeView: View {
         guard !reduceMotion else { return }
         isBobbing = true
     }
+}
+
+struct WelcomeCopy: Equatable, Sendable {
+    var headline: String
+    var cta: String
+    var footer: String
+
+    static let bokmal = WelcomeCopy(
+        headline: "Den gøyeste måten å spise keto på",
+        cta: "KOM I GANG",
+        footer: "Ingen binding · Avslutt når som helst"
+    )
 }
 
 #Preview("iPhone") {

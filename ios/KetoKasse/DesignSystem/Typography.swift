@@ -6,6 +6,7 @@ enum KKFont {
     }
 
     static let headline = nunito(32, weight: .heavy, relativeTo: .title)
+    static let bubble = nunito(20, weight: .bold, relativeTo: .title3)
     static let body = nunito(17, weight: .regular, relativeTo: .body)
     static let cta = nunito(15, weight: .bold, relativeTo: .headline)
 

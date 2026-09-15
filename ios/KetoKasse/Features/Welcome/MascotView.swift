@@ -3,6 +3,7 @@ import SwiftUI
 struct MascotView: View {
     var hopToken: Int
     var isBobbing: Bool
+    var size: CGFloat = KKMotion.mascotHero
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hopFade: Double = 1
@@ -24,8 +25,8 @@ struct MascotView: View {
     private var drawing: some View {
         MascotDrawing()
             .frame(width: 80, height: 80)
-            .scaleEffect(KKMotion.mascotSize / 80)
-            .frame(width: KKMotion.mascotSize, height: KKMotion.mascotSize)
+            .scaleEffect(size / 80)
+            .frame(width: size, height: size)
     }
 }
 
@@ -70,6 +71,8 @@ private struct MascotHopModifier: ViewModifier {
     }
 }
 
+/// Placeholder crate on an 80pt artboard. Replace this view with an Illustrator
+/// image in Assets.xcassets. Callers pass `size` so Duo layout stays put.
 private struct MascotDrawing: View {
     var body: some View {
         ZStack {
